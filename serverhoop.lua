@@ -4,8 +4,8 @@ local TeleportService = game:GetService("TeleportService")
 local placeId = game.PlaceId
 local currentJobId = game.JobId
 
-local MIN_PLAYER = 5
-local MAX_PLAYER = 19
+local MIN_PLAYER = 15
+local MAX_PLAYER = 18
 
 print("=== SERVER HOP DEBUG START ===")
 print("PlaceId:", placeId)
