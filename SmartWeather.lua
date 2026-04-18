@@ -212,26 +212,149 @@ task.spawn(smartSystem)
 --// 🎨 GUI
 --// =========================
 
-local gui = Instance.new("ScreenGui", player.PlayerGui)
-gui.Name = "FishSystem"
+local player = game.Players.LocalPlayer
 
-local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 300, 0, 420)
-frame.Position = UDim2.new(0, 50, 0, 50)
-frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
-frame.Active = true
-frame.Draggable = true
+--// GUI ROOT
+local gui = Instance.new("ScreenGui")
+gui.Name = "FishUI"
+gui.Parent = player.PlayerGui
 
-local layout = Instance.new("UIListLayout", frame)
+-- MAIN FRAME
+local main = Instance.new("Frame", gui)
+main.Size = UDim2.new(0, 400, 0, 450)
+main.Position = UDim2.new(0.5, -200, 0.5, -225)
+main.BackgroundColor3 = Color3.fromRGB(20,20,20)
+main.Active = true
+main.Draggable = true
 
-local title = Instance.new("TextLabel", frame)
+-- TITLE
+local title = Instance.new("TextLabel", main)
+title.Size = UDim2.new(1,0,0,40)
 title.Text = "Fish System"
-title.Size = UDim2.new(1,0,0,30)
-title.BackgroundTransparency = 1
 title.TextColor3 = Color3.new(1,1,1)
+title.BackgroundTransparency = 1
+title.TextScaled = true
 
--- WEBHOOK
-local webhookBox = Instance.new("TextBox", frame)
+-- TAB HOLDER
+local tabBar = Instance.new("Frame", main)
+tabBar.Size = UDim2.new(1,0,0,35)
+tabBar.Position = UDim2.new(0,0,0,40)
+tabBar.BackgroundTransparency = 1
+
+local tabLayout = Instance.new("UIListLayout", tabBar)
+tabLayout.FillDirection = Enum.FillDirection.Horizontal
+
+-- CONTENT HOLDER
+local content = Instance.new("Frame", main)
+content.Size = UDim2.new(1,0,1,-75)
+content.Position = UDim2.new(0,0,0,75)
+content.BackgroundTransparency = 1
+
+-- CREATE TAB FUNCTION
+local tabs = {}
+local function createTab(name)
+    local btn = Instance.new("TextButton", tabBar)
+    btn.Size = UDim2.new(0.5,0,1,0)
+    btn.Text = name
+    btn.BackgroundColor3 = Color3.fromRGB(40,40,40)
+    btn.TextColor3 = Color3.new(1,1,1)
+
+    local frame = Instance.new("ScrollingFrame", content)
+    frame.Size = UDim2.new(1,0,1,0)
+    frame.CanvasSize = UDim2.new(0,0,0,0)
+    frame.Visible = false
+    frame.BackgroundTransparency = 1
+    frame.ScrollBarThickness = 6
+
+    local layout = Instance.new("UIListLayout", frame)
+    layout.Padding = UDim.new(0,5)
+
+    tabs[name] = frame
+
+    btn.MouseButton1Click:Connect(function()
+        for _, f in pairs(tabs) do
+            f.Visible = false
+        end
+        frame.Visible = true
+    end)
+
+    return frame
+end
+
+-- CREATE TABS
+local eventTab = createTab("Events")
+local serverTab = createTab("Server Hop")
+
+tabs["Events"].Visible = true
+
+--// =========================
+--// 🎛️ TOGGLE UI FUNCTION
+--// =========================
+
+local function createToggle(parent, text, default, callback)
+    local btn = Instance.new("TextButton", parent)
+    btn.Size = UDim2.new(1,0,0,30)
+    btn.TextColor3 = Color3.new(1,1,1)
+
+    local state = default
+
+    local function update()
+        btn.Text = text .. ": " .. (state and "ON" or "OFF")
+        btn.BackgroundColor3 = state and Color3.fromRGB(0,170,0) or Color3.fromRGB(60,60,60)
+    end
+
+    update()
+
+    btn.MouseButton1Click:Connect(function()
+        state = not state
+        update()
+        callback(state)
+    end)
+
+    return btn
+end
+
+--// =========================
+--// 📜 EVENT LIST (DINAMIS)
+--// =========================
+
+local eventsFolder = player.PlayerGui:WaitForChild("Events")
+    :WaitForChild("Frame")
+    :WaitForChild("Events")
+
+local eventButtons = {}
+
+local function refreshEvents()
+    for _, v in pairs(eventTab:GetChildren()) do
+        if v:IsA("TextButton") then
+            v:Destroy()
+        end
+    end
+
+    for _, event in pairs(eventsFolder:GetChildren()) do
+        local btn = createToggle(eventTab, event.Name, Settings.SelectedEvents[event.Name], function(state)
+            Settings.SelectedEvents[event.Name] = state
+            saveSettings()
+        end)
+
+        eventButtons[event.Name] = btn
+    end
+
+    task.wait()
+    eventTab.CanvasSize = UDim2.new(0,0,0,#eventsFolder:GetChildren()*35)
+end
+
+refreshEvents()
+
+-- auto update jika event berubah
+eventsFolder.ChildAdded:Connect(refreshEvents)
+eventsFolder.ChildRemoved:Connect(refreshEvents)
+
+--// =========================
+--// 🌐 WEBHOOK INPUT
+--// =========================
+
+local webhookBox = Instance.new("TextBox", eventTab)
 webhookBox.PlaceholderText = "Webhook URL"
 webhookBox.Text = Settings.WebhookURL
 webhookBox.Size = UDim2.new(1,0,0,30)
@@ -241,100 +364,55 @@ webhookBox.FocusLost:Connect(function()
     saveSettings()
 end)
 
--- EVENT LIST
-for _, event in pairs(eventsFolder:GetChildren()) do
-    local btn = Instance.new("TextButton", frame)
-    btn.Text = event.Name
-    btn.Size = UDim2.new(1,0,0,25)
+--// =========================
+--// 🔄 SERVER TAB
+--// =========================
 
-    btn.BackgroundColor3 = Settings.SelectedEvents[event.Name] 
-        and Color3.fromRGB(0,170,0) 
-        or Color3.fromRGB(50,50,50)
+local function createInput(parent, text, value, callback)
+    local box = Instance.new("TextBox", parent)
+    box.Size = UDim2.new(1,0,0,30)
+    box.Text = tostring(value)
+    box.PlaceholderText = text
 
-    btn.MouseButton1Click:Connect(function()
-        Settings.SelectedEvents[event.Name] = not Settings.SelectedEvents[event.Name]
-
-        btn.BackgroundColor3 = Settings.SelectedEvents[event.Name] 
-            and Color3.fromRGB(0,170,0) 
-            or Color3.fromRGB(50,50,50)
-
-        saveSettings()
+    box.FocusLost:Connect(function()
+        local num = tonumber(box.Text)
+        if num then
+            callback(num)
+            saveSettings()
+        end
     end)
 end
 
--- AUTO HOP TOGGLE
-local autoHopBtn = Instance.new("TextButton", frame)
-autoHopBtn.Size = UDim2.new(1,0,0,30)
+createInput(serverTab, "Hop Delay", Settings.HopDelay, function(v)
+    Settings.HopDelay = v
+end)
 
-local function updateAutoHopText()
-    autoHopBtn.Text = "Auto Hop If Not Found: " .. (Settings.AutoHopIfNotFound and "ON" or "OFF")
-end
+createInput(serverTab, "Min Players", Settings.MinPlayers, function(v)
+    Settings.MinPlayers = v
+end)
 
-updateAutoHopText()
+createInput(serverTab, "Max Players", Settings.MaxPlayers, function(v)
+    Settings.MaxPlayers = v
+end)
 
-autoHopBtn.MouseButton1Click:Connect(function()
-    Settings.AutoHopIfNotFound = not Settings.AutoHopIfNotFound
-    updateAutoHopText()
+-- SORT TOGGLE
+createToggle(serverTab, "Sort Desc", Settings.SortOrder == "Desc", function(state)
+    Settings.SortOrder = state and "Desc" or "Asc"
     saveSettings()
 end)
 
--- DELAY
-local delayBox = Instance.new("TextBox", frame)
-delayBox.Text = tostring(Settings.HopDelay)
-delayBox.PlaceholderText = "Hop Delay"
-delayBox.Size = UDim2.new(1,0,0,30)
-
-delayBox.FocusLost:Connect(function()
-    local num = tonumber(delayBox.Text)
-    if num then
-        Settings.HopDelay = num
-        saveSettings()
-    end
-end)
-
--- MIN PLAYER
-local minBox = Instance.new("TextBox", frame)
-minBox.Text = tostring(Settings.MinPlayers)
-minBox.PlaceholderText = "Min Players"
-minBox.Size = UDim2.new(1,0,0,30)
-
-minBox.FocusLost:Connect(function()
-    local num = tonumber(minBox.Text)
-    if num then
-        Settings.MinPlayers = num
-        saveSettings()
-    end
-end)
-
--- MAX PLAYER
-local maxBox = Instance.new("TextBox", frame)
-maxBox.Text = tostring(Settings.MaxPlayers)
-maxBox.PlaceholderText = "Max Players"
-maxBox.Size = UDim2.new(1,0,0,30)
-
-maxBox.FocusLost:Connect(function()
-    local num = tonumber(maxBox.Text)
-    if num then
-        Settings.MaxPlayers = num
-        saveSettings()
-    end
-end)
-
--- SORT
-local sortBtn = Instance.new("TextButton", frame)
-sortBtn.Text = "Sort: " .. Settings.SortOrder
-sortBtn.Size = UDim2.new(1,0,0,30)
-
-sortBtn.MouseButton1Click:Connect(function()
-    Settings.SortOrder = (Settings.SortOrder == "Asc") and "Desc" or "Asc"
-    sortBtn.Text = "Sort: " .. Settings.SortOrder
+-- AUTO HOP
+createToggle(serverTab, "Auto Hop If Not Found", Settings.AutoHopIfNotFound, function(state)
+    Settings.AutoHopIfNotFound = state
     saveSettings()
 end)
 
--- START HOP
-local hopBtn = Instance.new("TextButton", frame)
+-- START BUTTON
+local hopBtn = Instance.new("TextButton", serverTab)
 hopBtn.Text = "START SERVER HOP"
 hopBtn.Size = UDim2.new(1,0,0,40)
+hopBtn.BackgroundColor3 = Color3.fromRGB(0,120,255)
+hopBtn.TextColor3 = Color3.new(1,1,1)
 
 hopBtn.MouseButton1Click:Connect(function()
     task.spawn(serverHop)
