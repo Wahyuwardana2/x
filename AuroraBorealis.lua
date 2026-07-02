@@ -122,8 +122,6 @@ end
 -------------------------------------------------
 task.spawn(function()
 	while true do
-		task.wait(CHECK_INTERVAL)
-
 		print("🔍 Checking Aurora event...")
 
 		local ok, active = pcall(isAuroraActive)
@@ -134,5 +132,7 @@ task.spawn(function()
 			print("❌ Aurora NOT ACTIVE -> hopping")
 			hop()
 		end
+
+		task.wait(CHECK_INTERVAL)
 	end
 end)
