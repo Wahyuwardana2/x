@@ -5,7 +5,7 @@ local HttpService = game:GetService("HttpService")
 local player = Players.LocalPlayer
 local placeId = game.PlaceId
 
-local CHECK_INTERVAL = 60
+local CHECK_INTERVAL = 30
 local hopping = false
 
 -------------------------------------------------
