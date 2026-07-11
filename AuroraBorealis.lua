@@ -1,139 +1,148 @@
 local Players = game:GetService("Players")
 local TeleportService = game:GetService("TeleportService")
-local HttpService = game:GetService("HttpService")
 
 local player = Players.LocalPlayer
 local placeId = game.PlaceId
 
 local CHECK_INTERVAL = 10
+local MAX_PLAYERS = 20
+
 local hopping = false
 
--------------------------------------------------
--- EVENT CHECK
--------------------------------------------------
-local function getEventsFolder()
-	return player:WaitForChild("PlayerGui")
-		:WaitForChild("Events")
-		:WaitForChild("Frame")
-		:WaitForChild("Events")
+
+local function getServerBrowserReplion()
+    for _,v in pairs(getgc(true)) do
+        if typeof(v) == "table" then
+            if tostring(v) == "Replion<ServerBrowser>" then
+                return v
+            end
+        end
+    end
 end
 
-local function isEventActive(event)
-	if event:IsA("GuiObject") and event.Visible then
-		return true
-	end
 
-	for _, v in ipairs(event:GetDescendants()) do
-		if v:IsA("TextLabel") or v:IsA("TextButton") then
-			if v.Text and v.Text ~= "" then
-				return true
-			end
-		end
-	end
+local function hasAurora(server)
 
-	return false
+    if not server.Events then
+        return false
+    end
+
+    for _,event in pairs(server.Events) do
+        
+        if string.find(
+            string.lower(event),
+            "aurora"
+        ) then
+            return true
+        end
+
+    end
+
+    return false
 end
 
-local function isAuroraActive()
-	local eventsFolder = getEventsFolder()
 
-	for _, event in ipairs(eventsFolder:GetChildren()) do
-		if isEventActive(event) then
-			local name = event.Name
-			if string.find(name, "Aurora Borealis") then
-				return true
-			end
-		end
-	end
+local function findAuroraServer()
 
-	return false
+    local replion = getServerBrowserReplion()
+
+    if not replion then
+        return nil
+    end
+
+
+    local servers = replion.Data.Servers
+
+    for _,server in pairs(servers) do
+        
+        if server.JobId ~= game.JobId
+        and server.Players < MAX_PLAYERS
+        and hasAurora(server) then
+            
+            print("================")
+            print("AURORA SERVER FOUND")
+            print("JOBID:", server.JobId)
+            print("PLAYERS:", server.Players)
+            print("REGION:", server.Region)
+            print("================")
+
+            return server.JobId
+        end
+
+    end
+
+    return nil
 end
 
--------------------------------------------------
--- SERVER FETCH (ONLY WHEN NEEDED)
--------------------------------------------------
-local function getServers(cursor)
-	local url =
-		"https://games.roblox.com/v1/games/"
-		.. placeId
-		.. "/servers/Public?limit=100&sortOrder=Asc"
 
-	if cursor then
-		url = url .. "&cursor=" .. cursor
-	end
 
-	local success, result = pcall(function()
-		return HttpService:JSONDecode(game:HttpGet(url))
-	end)
+local function checkCurrentServer()
 
-	if success then
-		return result
-	end
+    local replion = getServerBrowserReplion()
 
-	return nil
+    if not replion then
+        return false
+    end
+
+
+    for _,server in pairs(replion.Data.Servers) do
+        
+        if server.JobId == game.JobId then
+            
+            if hasAurora(server) then
+                
+                print("CURRENT SERVER : AURORA ACTIVE")
+                return true
+
+            else
+                
+                print("CURRENT SERVER : NO AURORA")
+                return false
+
+            end
+        end
+    end
+
+    return false
 end
 
-local function findServerWithAurora()
 
-	local cursor = nil
 
-	while true do
-		local data = getServers(cursor)
-		if not data then return nil end
+local function hopToAurora()
 
-		for _, server in ipairs(data.data) do
-			if server.id ~= game.JobId and server.playing < server.maxPlayers then
+    if hopping then
+        return
+    end
 
-				return server.id
-			end
-		end
+    local jobId = findAuroraServer()
 
-		cursor = data.nextPageCursor
-		if not cursor then
-			break
-		end
-	end
+    if jobId then
+        
+        hopping = true
 
-	return nil
+        print("TELEPORTING TO:", jobId)
+
+        TeleportService:TeleportToPlaceInstance(
+            placeId,
+            jobId,
+            player
+        )
+
+    else
+        
+        print("NO AURORA SERVER FOUND")
+
+    end
 end
 
--------------------------------------------------
--- HOP
--------------------------------------------------
-local function hop()
-	if hopping then return end
-	hopping = true
 
-	print("🔎 Searching server with Aurora presence...")
 
-	local serverId = findServerWithAurora()
+while task.wait(CHECK_INTERVAL) do
 
-	if serverId then
-		print("🚀 Hopping:", serverId)
-		TeleportService:TeleportToPlaceInstance(placeId, serverId, player)
-	else
-		print("❌ No server found, retry later")
-		hopping = false
-	end
+    local active = checkCurrentServer()
+
+    if not active then
+        hopToAurora()
+    end
+
 end
-
--------------------------------------------------
--- MAIN LOOP (OPTIMIZED)
--------------------------------------------------
-task.spawn(function()
-	while true do
-		task.wait(CHECK_INTERVAL)
-		print("🔍 Checking Aurora event...")
-
-		local ok, active = pcall(isAuroraActive)
-
-		if ok and active then
-			print("🌦 Aurora ACTIVE -> staying")
-		else
-			print("❌ Aurora NOT ACTIVE -> hopping")
-			hop()
-		end
-
-
-	end
-end)
