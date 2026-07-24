@@ -64,7 +64,7 @@ local UsedUUID = {}
 -- SERVER INFO
 ------------------------------------------------
 
-local PlaceId = game.PlaceId
+local PlaceId = "79378095465365"
 
 
 
