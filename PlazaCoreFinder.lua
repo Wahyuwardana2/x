@@ -26,12 +26,12 @@ local Config = {
 
     Fish = {
 
-        Enabled = true,
+        Enabled = false,
 
 
         -- true = hanya nama list
         -- false = semua fish
-        FilterName = false,
+        FilterName = true,
 
 
         Names = {
@@ -129,7 +129,7 @@ local Config = {
 
             Boat = true,
 
-            Gear = true
+            Gear = false
 
 
         }
