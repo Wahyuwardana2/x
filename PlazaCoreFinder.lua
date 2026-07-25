@@ -1,12 +1,35 @@
 --================================================--
--- JP FINDER FISHIT v4
+-- CORE + CONFIG + RAP + FILTER SYSTEM
 --================================================--
 
 local Players = game:GetService("Players")
 local HttpService = game:GetService("HttpService")
 local TeleportService = game:GetService("TeleportService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local LocalPlayer = Players.LocalPlayer
+local PlaceId = game.PlaceId
+
+
+
+------------------------------------------------
+-- RAP CONTROLLER
+------------------------------------------------
+
+local RAPController = nil
+
+
+pcall(function()
+
+    RAPController =
+    require(
+        ReplicatedStorage
+        :WaitForChild("Controllers")
+        :WaitForChild("Trading")
+        :WaitForChild("RAPController")
+    )
+
+end)
 
 
 
@@ -16,184 +39,811 @@ local LocalPlayer = Players.LocalPlayer
 
 local Config = {
 
-    Webhook =
-    "https://discordapp.com/api/webhooks/1516432952370663529/Fp2ZgaPztDl4CxMS3OyEHqKuG_FoWVz1TOjn1ou_PfhjaWTwsp3ozuOAV9KsxIWQQncP",
 
+------------------------------------------------
+-- DISCORD
+------------------------------------------------
 
-    ------------------------------------------------
-    -- FISH
-    ------------------------------------------------
+Webhook = {
 
-    Fish = {
+    Fish =
+    "https://discordapp.com/api/webhooks/1530612875272654961/u2FmJrJssywDYVh-5dWguka_5fpZkyzoCbioZhS-ctNIjYTTJ-1rIppT2hDXXmdbwsnn",
 
-        Enabled = false,
 
+    Gears =
+    "https://discordapp.com/api/webhooks/1530613045020069991/8gEwiqeGmaCus3ZzWYr14HVWOs5GdX0SC9Iyqevqj6fIDzOB37ozMEXUI1WxvjsbI46e",
 
-        -- true = hanya nama list
-        -- false = semua fish
-        FilterName = true,
 
+    ["Fishing Rods"] =
+    "https://discordapp.com/api/webhooks/1530613393306685612/1hBlQwnCzjbVdfQYR1RzfB07e64wDxBPcMCPRM1hFprZQDdHYqYZFHO82L5ZFQDi3aoq",
 
-        Names = {
 
-            -- contoh
-            "Megalodon",
-            "Ancient Kraken",
+    Boats =
+    "https://discordapp.com/api/webhooks/1530613586525815027/osI8YKDYkl_bwCCVT4S6-W-bblZMZ9gTRLhVfLseGuxWIAwz2EN1vpNz1Jl1IisVlPDX"
 
-        },
+},
+------------------------------------------------
+-- DEBUG
+------------------------------------------------
 
+Debug = true,
 
-        Mutation = {
 
-            Enabled = false,
 
+------------------------------------------------
+-- LOAD
+------------------------------------------------
 
-            Blacklist = {
+LoadDelay = 7,
 
-                "ghost",
-                "stone",
-                "albino",
-                "shiny",
-                "sandy"
+StayTime = 5,
 
-            }
 
-        }
 
-    },
+------------------------------------------------
+-- ITEM SETTINGS
+------------------------------------------------
 
+Items = {
 
 
-    ------------------------------------------------
-    -- EQUIPMENT
-    ------------------------------------------------
+------------------------------------------------
+-- FISH
+------------------------------------------------
 
-    Equipment = {
+Fish = {
 
+Enabled = false,
 
-        Enabled = true,
 
+FilterName = true,
 
-        -- true = nama tertentu
-        -- false = semua equipment
 
-        FilterName = true,
+Names = {
 
+"Ruby"
 
-        Names = {
+},
 
 
-            "Withering Core",
+Mutation = {
 
+Enabled = true,
 
-        },
+Blacklist = {
 
+"ghost",
+"stone",
+"albino",
+"sandy"
 
+}
 
-        Mutation = {
+},
 
 
-            Enabled = true,
+RAP = {
 
+Enabled = false,
 
-            Blacklist = {
+Percent = 1
 
-                "ghost",
-                "stone",
-                "albino",
-                "shiny",
-                "sandy"
+}
 
-            }
 
+},
 
-        },
 
 
 
-        ------------------------------------------------
-        -- RAP FILTER
-        ------------------------------------------------
 
-        UnderRap = {
+------------------------------------------------
+-- GEARS
+------------------------------------------------
 
+Gears = {
 
-            Enabled = true,
+Enabled = true,
 
 
-            Percent = 10,
+FilterName = true,
 
 
+Names = {
 
-            FishingRod = true,
+"Withering Core"
 
-            Boat = true,
+},
 
-            Gear = false
 
+Mutation = {
 
-        }
+Enabled = true,
 
+Blacklist = {
+"ghost",
+"stone",
+"albino",
+"sandy"
+}
 
+},
 
-    },
 
+RAP = {
 
+Enabled = false,
 
+Percent = 1
 
-    AutoHop = true,
+}
 
 
-    MinPlayer = 1,
+},
 
-    MaxPlayer = 21,
 
 
-    LoadDelay = 10,
 
-    StayTime = 5,
 
-    HopDelay = 5
+
+------------------------------------------------
+-- FISHING RODS
+------------------------------------------------
+
+["Fishing Rods"] = {
+
+
+Enabled = true,
+
+
+FilterName = false,
+
+
+Names = {},
+
+
+RAP = {
+
+Enabled = true,
+
+Percent = 7
+
+}
+
+
+},
+
+
+
+
+
+
+------------------------------------------------
+-- BOATS
+------------------------------------------------
+
+Boats = {
+
+
+Enabled = true,
+
+
+FilterName = false,
+
+
+Names = {
+
+"Jetski"
+
+},
+
+
+RAP = {
+
+Enabled = true,
+
+Percent = 7
+
+}
+
+
+},
+
+
+
+
+
+------------------------------------------------
+-- EQUIPMENT
+------------------------------------------------
+
+Equipment = {
+
+
+Enabled = true,
+
+
+FilterName = false,
+
+
+Names = {},
+
+
+RAP = {
+
+Enabled = true,
+
+Percent = 15
+
+}
+
+
+},
+
+
+
+
+
+------------------------------------------------
+-- TROPHIES
+------------------------------------------------
+
+Trophies = {
+
+
+Enabled = false,
+
+
+FilterName = false,
+
+
+Names = {},
+
+
+RAP = {
+
+Enabled = false,
+
+Percent = 1
+
+}
+
+
+},
+
+
+
+
+
+------------------------------------------------
+-- ENCHANT
+------------------------------------------------
+
+["Enchant Stones"] = {
+
+
+Enabled = false,
+
+
+FilterName = false,
+
+
+Names = {},
+
+
+RAP = {
+
+Enabled = false,
+
+Percent = 1
+
+}
 
 
 }
+
+
+
+},
+
+
+
+
+------------------------------------------------
+-- SERVER
+------------------------------------------------
+
+Server = {
+
+
+AutoHop = true,
+
+
+MinPlayer = 1,
+
+
+MaxPlayer = 20,
+
+
+HopDelay = 5
+
+
+}
+
+
+
+}
+
 
 
 ------------------------------------------------
 -- STATE
 ------------------------------------------------
 
-local FoundItem = false
-
-local FoundCount = 0
-
 local FoundItems = {}
 
 local UsedUUID = {}
 
+local FoundCount = 0
 
-
-------------------------------------------------
--- SERVER INFO
-------------------------------------------------
-
-local PlaceId = 79378095465365
 
 
 
 ------------------------------------------------
--- CLEAN TEXT
+-- DEBUG PRINT
+------------------------------------------------
+
+local function DebugPrint(...)
+
+    if Config.Debug then
+
+        print(...)
+
+    end
+
+end
+
+
+
+
+
+------------------------------------------------
+-- CLEAN
 ------------------------------------------------
 
 local function Clean(text)
 
     if not text then
+
         return ""
+
     end
 
-    return tostring(text):lower()
+
+    return tostring(text)
+    :lower()
 
 end
+
+
+
+
+
+------------------------------------------------
+-- CLEAN RAP NAME
+------------------------------------------------
+
+local function CleanRAPName(name)
+
+
+    if not name then
+
+        return ""
+
+    end
+
+
+
+    local result =
+    tostring(name)
+
+
+
+    local remove = {
+
+        "Big Shiny ",
+        "Big ",
+        "Shiny "
+
+    }
+
+
+
+    for _,v in ipairs(remove) do
+
+        result =
+        result:gsub(
+            "^"..v,
+            ""
+        )
+
+    end
+
+
+
+    return result
+
+
+end
+
+
+
+
+
+
+------------------------------------------------
+-- GET RAP
+------------------------------------------------
+
+local function GetRAP(itemType,itemName)
+
+
+    if not RAPController then
+
+        return nil
+
+    end
+
+
+
+    local success,result =
+    pcall(function()
+
+
+        return RAPController:GetRAP(
+
+            itemType,
+
+            CleanRAPName(itemName)
+
+        )
+
+
+    end)
+
+
+
+    if success then
+
+        return result
+
+    end
+
+
+
+    DebugPrint(
+
+        "[RAP ERROR]",
+
+        itemType,
+
+        itemName,
+
+        result
+
+    )
+
+
+    return nil
+
+
+end
+
+
+
+
+
+
+------------------------------------------------
+-- GET CATEGORY
+------------------------------------------------
+
+local function GetCategory(itemType)
+
+
+    return Config.Items[itemType]
+
+
+end
+
+
+
+
+
+
+------------------------------------------------
+-- NAME FILTER
+------------------------------------------------
+
+local function CheckNameFilter(name,list)
+
+
+    if #list == 0 then
+
+        return true
+
+    end
+
+
+
+    for _,v in ipairs(list) do
+
+
+        if Clean(name)
+        ==
+        Clean(v)
+        then
+
+            return true
+
+        end
+
+
+    end
+
+
+
+    return false
+
+
+end
+
+
+
+
+
+
+------------------------------------------------
+-- MUTATION FILTER
+------------------------------------------------
+
+local function CheckMutation(mutation,cfg)
+
+
+    if not cfg
+    or not cfg.Enabled
+    then
+
+        return true
+
+    end
+
+
+
+    mutation =
+    Clean(mutation)
+
+
+
+    if mutation == ""
+    or mutation == "normal"
+    then
+
+        return false
+
+    end
+
+
+
+    for _,bad in ipairs(cfg.Blacklist) do
+
+
+        if mutation:find(
+            Clean(bad)
+        )
+        then
+
+            return false
+
+        end
+
+
+    end
+
+
+
+    return true
+
+
+end
+
+
+
+
+
+
+------------------------------------------------
+-- RAP FILTER
+------------------------------------------------
+
+local function CheckRAP(item)
+
+
+    local category =
+    GetCategory(
+        item.ItemType
+    )
+
+
+    if not category then
+
+        return true
+
+    end
+
+
+
+    if not category.RAP
+    or not category.RAP.Enabled
+    then
+
+        return true
+
+    end
+
+
+
+
+    local rap =
+    GetRAP(
+        item.ItemType,
+        item.Name
+    )
+
+
+
+    if not rap then
+
+        return true
+
+    end
+
+
+
+    item.RAP = rap
+
+
+
+    local percent =
+    category.RAP.Percent or 1
+
+
+
+    local limit =
+    rap *
+    (
+        100-percent
+    )
+    /
+    100
+
+
+
+    if item.Price > limit then
+
+        DebugPrint(
+
+            "[OVER RAP]",
+
+            item.Name,
+
+            item.Price,
+
+            rap
+
+        )
+
+
+        return false
+
+    end
+
+
+
+
+    item.UnderRap =
+    math.floor(
+
+        (
+            1 -
+            item.Price / rap
+        )
+        *
+        100
+
+    )
+
+
+
+    return true
+
+
+end
+
+
+
+
+
+
+------------------------------------------------
+-- CATEGORY FILTER
+------------------------------------------------
+
+local function CheckCategory(item)
+
+
+    local category =
+    GetCategory(
+        item.ItemType
+    )
+
+
+
+    if not category then
+
+        DebugPrint(
+            "[UNKNOWN TYPE]",
+            item.ItemType
+        )
+
+        return false
+
+    end
+
+
+
+    if not category.Enabled then
+
+        return false
+
+    end
+
+
+
+
+    if category.FilterName then
+
+
+        if not CheckNameFilter(
+
+            item.Name,
+
+            category.Names
+
+        )
+        then
+
+            return false
+
+        end
+
+
+    end
+
+
+
+    return true
+
+
+end
+
+
+
+
+
+--================================================--
+-- BOOTH SCANNER + ITEM PARSER
+--================================================--
 
 
 
@@ -215,7 +865,8 @@ local function GetSeller(userId)
     local success,name =
     pcall(function()
 
-        return Players:GetNameFromUserIdAsync(
+        return Players:
+        GetNameFromUserIdAsync(
             userId
         )
 
@@ -233,272 +884,89 @@ local function GetSeller(userId)
 
     return tostring(userId)
 
+
 end
 
 
 
 
+
+
 ------------------------------------------------
--- DISCORD WEBHOOK
+-- GET TEXT
 ------------------------------------------------
 
-local function SendWebhook(items)
+local function GetText(obj)
 
 
-    if Config.Webhook == "" then
+    if not obj then
 
-        warn(
-            "Webhook kosong"
-        )
-
-        return
+        return ""
 
     end
 
 
 
-    local serverLink =
-
-    "https://www.roblox.com/games/"
-    ..
-    PlaceId
-    ..
-    "?gameInstanceId="
-    ..
-    game.JobId
-
-
-
-    local text = ""
-
-
-
-    for _,item in ipairs(items) do
-
-
-        text = text
-
-        .."🎣 **"
-        ..item.Item
-        .."**\n"
-
-        .."Size: "
-        ..item.Size 
-        .."\n"
-
-        .."Mutation: "
-        ..item.Mutation
-        .."\n"
-
-        .."Variant: "
-        ..item.Variant
-        .."\n"
-
-        .."Weight: "
-        ..tostring(item.Weight ~= "" and item.Weight or "-")
-        .."\n"
-
-        .."Price: "
-        ..tostring(item.Price)
-        .."\n"
-
-        .."Seller: "
-        ..item.Seller
-        .."\n\n"
-
-
-    end
-
-
-
-    local payload = {
-
-
-        embeds = {
-
-
-            {
-
-                title =
-                "🎣 JP FINDER FOUND ITEM",
-
-
-                color = 65280,
-
-
-                fields = {
-
-
-                    {
-
-                        name =
-                        "Total",
-
-                        value =
-                        tostring(#items)
-
-                    },
-
-
-                    {
-
-                        name =
-                        "Items",
-
-                        value =
-                        text:sub(1,1024)
-
-                    },
-
-
-                    {
-
-                        name =
-                        "Server",
-
-                        value =
-                        serverLink
-
-                    }
-
-
-                }
-
-
-            }
-
-
-        }
-
-
-    }
-
-
-
-    local body =
-    HttpService:JSONEncode(
-        payload
-    )
-
-
-
-    local requestFunc =
-    request
-    or http_request
-    or syn.request
-
-
-
-    if requestFunc then
-
-
-        requestFunc({
-
-            Url = Config.Webhook,
-
-            Method = "POST",
-
-            Headers = {
-
-                ["Content-Type"] =
-                "application/json"
-
-            },
-
-            Body = body
-
-        })
-
-
-    else
-
-
-        HttpService:PostAsync(
-
-            Config.Webhook,
-
-            body,
-
-            Enum.HttpContentType.ApplicationJson
-
-        )
-
-
-    end
-
-
-
-    print(
-        "[WEBHOOK SENT]"
-    )
-
-
-end
-
-
-------------------------------------------------
--- NAME FILTER
-------------------------------------------------
-
-local function CheckNameFilter(itemName,list)
-
-    for _,name in ipairs(list) do
-
-        if Clean(itemName)
-        ==
-        Clean(name)
-        then
-
-            return true
-
-        end
-
-    end
-
-
-    return false
-
-end
-
-
-
-------------------------------------------------
--- MUTATION FILTER
-------------------------------------------------
-
-local function CheckMutation(mutation,data)
-
-
-    if not data.Enabled then
-
-        return true
-
-    end
-
-
-
-    if mutation==""
-    or mutation=="normal"
+    if obj:IsA("TextLabel")
+    or obj:IsA("TextButton")
     then
 
-        return false
+        return obj.Text or ""
 
     end
 
 
 
-    for _,bad in ipairs(
-        data.Blacklist
-    ) do
+    return ""
+
+end
 
 
-        if Clean(mutation)
-        :find(
-            Clean(bad)
+
+
+
+
+------------------------------------------------
+-- GET IMAGE
+------------------------------------------------
+
+local function GetImage(frame)
+
+
+    local image
+
+
+    pcall(function()
+
+
+        image =
+        frame:
+        FindFirstChildWhichIsA(
+            "ImageLabel",
+            true
         )
-        then
 
-            return false
+
+    end)
+
+
+
+    if image then
+
+
+        local id =
+        image.Image
+
+
+
+        if id then
+
+
+            return id:gsub(
+                "rbxassetid://",
+                ""
+            )
+
 
         end
 
@@ -506,9 +974,349 @@ local function CheckMutation(mutation,data)
     end
 
 
-    return true
+
+    return nil
+
 
 end
+
+
+
+
+
+
+
+------------------------------------------------
+-- PARSE ITEM DETAIL 
+------------------------------------------------
+
+local function ParseItemDetail(item,inside)
+
+
+
+    item.BaseName =
+    item.Name
+
+
+
+    item.Size = ""
+
+
+
+    ------------------------------------------------
+    -- SIZE
+    ------------------------------------------------
+
+    local bigFrame =
+    inside:FindFirstChild(
+        "BigFrame",
+        true
+    )
+
+
+
+    if bigFrame
+    and bigFrame.Visible
+    then
+
+
+        local label =
+        bigFrame:FindFirstChild(
+            "Label",
+            true
+        )
+
+
+
+        if label then
+
+
+            item.Size =
+            label.Text
+
+
+        else
+
+
+            item.Size =
+            "Big"
+
+
+        end
+
+
+    end
+
+
+
+
+
+    ------------------------------------------------
+    -- MUTATION
+    -- VariantLabel
+    ------------------------------------------------
+
+    local mutation =
+    inside:FindFirstChild(
+        "VariantLabel",
+        true
+    )
+
+
+
+    if mutation
+    and mutation.Visible
+    then
+
+
+        local text =
+        GetText(mutation)
+
+
+
+        if text ~= "" then
+
+
+            item.Mutation =
+            text
+
+
+        end
+
+
+    end
+
+
+
+
+
+    ------------------------------------------------
+    -- VARIANT
+    -- ShinyFrame
+    ------------------------------------------------
+
+    local shiny =
+    inside:FindFirstChild(
+        "ShinyFrame",
+        true
+    )
+
+
+
+    if shiny
+    and shiny.Visible
+    then
+
+
+        local label =
+        shiny:FindFirstChild(
+            "Label",
+            true
+        )
+
+
+
+        if label then
+
+
+            item.Variant =
+            label.Text
+
+
+        end
+
+
+    end
+
+
+
+
+
+
+    ------------------------------------------------
+    -- NAME PREFIX
+    ------------------------------------------------
+
+    local name =
+    item.Name
+
+
+
+    local lower =
+    name:lower()
+
+
+
+
+    if lower:find(
+        "^big shiny "
+    )
+    then
+
+
+        if item.Size == "" then
+
+            item.Size="Big"
+
+        end
+
+
+
+        if item.Mutation == "" then
+
+            item.Mutation="Shiny"
+
+        end
+
+
+
+        item.BaseName =
+        name:gsub(
+            "^[Bb][Ii][Gg]%s+[Ss][Hh][Ii][Nn][Yy]%s+",
+            ""
+        )
+
+
+
+
+    elseif lower:find(
+        "^big "
+    )
+    then
+
+
+
+        if item.Size == "" then
+
+            item.Size="Big"
+
+        end
+
+
+
+        item.BaseName =
+        name:gsub(
+            "^[Bb][Ii][Gg]%s+",
+            ""
+        )
+
+
+
+
+    elseif lower:find(
+        "^shiny "
+    )
+    then
+
+
+
+        if item.Mutation=="" then
+
+            item.Mutation="Shiny"
+
+        end
+
+
+
+        item.BaseName =
+        name:gsub(
+            "^[Ss][Hh][Ii][Nn][Yy]%s+",
+            ""
+        )
+
+
+
+    end
+
+
+
+
+end
+
+
+
+
+
+
+
+------------------------------------------------
+-- GET WEIGHT
+------------------------------------------------
+
+local function GetWeight(item,inside)
+
+
+
+    if item.ItemType ~= "Fish" then
+
+        return ""
+
+    end
+
+
+
+
+    local frame =
+    inside:FindFirstChild(
+        "WeightFrame",
+        true
+    )
+
+
+
+    if frame
+    and frame.Visible
+    then
+
+
+
+        local label =
+        frame:FindFirstChild(
+            "Label",
+            true
+        )
+
+
+
+        if label then
+
+            return label.Text
+
+        end
+
+
+
+
+        local text =
+        frame:FindFirstChildWhichIsA(
+            "TextLabel",
+            true
+        )
+
+
+
+        if text then
+
+            return text.Text
+
+        end
+
+
+    end
+
+
+
+    return "-"
+
+end
+
+
+
+
+
+
+
+
 
 
 ------------------------------------------------
@@ -526,7 +1334,9 @@ local function CheckItem(frame,booth)
 
 
 
-    if uuid and UsedUUID[uuid] then
+    if uuid
+    and UsedUUID[uuid]
+    then
 
         return
 
@@ -550,6 +1360,9 @@ local function CheckItem(frame,booth)
 
 
 
+
+
+
     local buy =
     frame:FindFirstChild(
         "Buy"
@@ -557,26 +1370,63 @@ local function CheckItem(frame,booth)
 
 
 
+
     local item = {
 
 
-        Name = "",
+        ItemUUID = uuid,
 
-        Size = "",
 
-        Mutation = "",
+        ItemType =
+        frame:GetAttribute(
+            "ItemType"
+        ),
 
-        Variant = "",
 
-        Weight = "",
+
+        ItemId =
+        frame:GetAttribute(
+            "ItemId"
+        ),
+
+
+
+        Image =
+        GetImage(frame),
+
+
+
+        Name="",
+
+
+        BaseName="",
+
+
+        Variant="",
+
+
+        Mutation="",
+
+
+        Size="",
+
+
+        Weight="",
 
 
         Price =
-        buy and
+        buy
+        and
         buy:GetAttribute(
             "LastKnownPrice"
         )
-        or 0
+        or 0,
+
+
+        RAP=nil,
+
+
+        UnderRap=nil
 
 
     }
@@ -585,10 +1435,11 @@ local function CheckItem(frame,booth)
 
 
 
-    ------------------------------------------------
-    -- ITEM NAME
-    ------------------------------------------------
 
+
+    ------------------------------------------------
+    -- NAME
+    ------------------------------------------------
 
     local label =
     inside:FindFirstChild(
@@ -598,13 +1449,11 @@ local function CheckItem(frame,booth)
 
 
 
-    if label
-    and label:IsA("TextLabel")
-    then
+    if label then
 
 
         item.Name =
-        label.Text
+        GetText(label)
 
 
     end
@@ -612,7 +1461,7 @@ local function CheckItem(frame,booth)
 
 
 
-    if item.Name == "" then
+    if item.Name=="" then
 
         return
 
@@ -621,187 +1470,60 @@ local function CheckItem(frame,booth)
 
 
 
+
+
+
     ------------------------------------------------
--- GET ITEM TYPE
-------------------------------------------------
-
-local itemType =
-frame:GetAttribute(
-    "ItemType"
-)
-
-
-
-if itemType=="Fish" then
-
-
-    if not Config.Fish.Enabled then
-        return
-    end
-
-
-
-    if Config.Fish.FilterName then
-
-
-        if not CheckNameFilter(
-            item.Name,
-            Config.Fish.Names
-        )
-        then
-            return
-        end
-
-
-    end
-
-
-
-elseif itemType=="Equipment" then
-
-
-
-    if not Config.Equipment.Enabled then
-        return
-    end
-
-
-
-    if Config.Equipment.FilterName then
-
-
-        if not CheckNameFilter(
-            item.Name,
-            Config.Equipment.Names
-        )
-        then
-            return
-        end
-
-
-    end
-
-
-
-else
-
-    return
-
-end
-
-------------------------------------------------
--- WEIGHT
-------------------------------------------------
-
-local weightFrame = inside:FindFirstChild("WeightFrame", true)
-
-if weightFrame and weightFrame.Visible then
-    local weightLabel = weightFrame:FindFirstChild("Label", true)
-
-    if weightLabel and weightLabel:IsA("TextLabel") then
-        item.Weight = weightLabel.Text
-    end
-end
-
-
-------------------------------------------------
--- SIZE
-------------------------------------------------
-
-local bigFrame = inside:FindFirstChild("BigFrame", true)
-
-if bigFrame and bigFrame.Visible then
-    local sizeLabel = bigFrame:FindFirstChild("Label", true)
-
-    if sizeLabel and sizeLabel:IsA("TextLabel") then
-        item.Size = sizeLabel.Text
-    else
-        item.Size = "Big"
-    end
-end
-
-
-    
-    ------------------------------------------------
-    -- MUTATION
+    -- PARSE
     ------------------------------------------------
 
-
-    local mutation =
-    inside:FindFirstChild(
-        "VariantLabel",
-        true
+    ParseItemDetail(
+        item,
+        inside
     )
 
 
 
-    if mutation
-    and mutation:IsA("TextLabel")
-    and mutation.Visible
-    then
-
-
-        item.Mutation =
-        mutation.Text
-
-
-    end
-
-
-
-
-    ------------------------------------------------
-    -- VARIANT
-    ------------------------------------------------
-
-
-    local shiny =
-    inside:FindFirstChild(
-        "ShinyFrame",
-        true
+    item.Weight =
+    GetWeight(
+        item,
+        inside
     )
 
 
 
-    if shiny
-    and shiny.Visible
+
+
+
+
+    ------------------------------------------------
+    -- FILTER
+    ------------------------------------------------
+
+    if not CheckCategory(item)
     then
 
-
-        local label =
-        shiny:FindFirstChild(
-            "Label",
-            true
-        )
-
-
-
-        if label
-        and label:IsA("TextLabel")
-        then
-
-            item.Variant =
-            label.Text
-
-        end
-
+        return
 
     end
 
 
 
 
-
-  ------------------------------------------------
--- MUTATION CHECK V4
-------------------------------------------------
-
-if itemType=="Fish" then
+    local category =
+    GetCategory(
+        item.ItemType
+    )
 
 
-    if not CheckMutation(
+
+    if category
+    and not CheckMutation(
+
         item.Mutation,
-        Config.Fish.Mutation
+
+        category.Mutation
+
     )
     then
 
@@ -811,13 +1533,9 @@ if itemType=="Fish" then
 
 
 
-elseif itemType=="Equipment" then
 
 
-    if not CheckMutation(
-        item.Mutation,
-        Config.Equipment.Mutation
-    )
+    if not CheckRAP(item)
     then
 
         return
@@ -825,217 +1543,181 @@ elseif itemType=="Equipment" then
     end
 
 
-end
-
-
-------------------------------------------------
--- RAP FILTER EQUIPMENT
-------------------------------------------------
-
-if itemType=="Equipment"
-and Config.Equipment.UnderRap.Enabled
-then
-
-
-    local rap =
-    GetRAP(
-        item.Name
-    )
-
-
-    if rap and rap > 0 then
-
-
-        local limit =
-
-        rap *
-        (
-            100 -
-            Config.Equipment.UnderRap.Percent
-        )
-        /
-        100
 
 
 
-        if item.Price > limit then
 
-            return
-
-        end
-
-
-
-        item.RAP = rap
-
-
-        item.UnderRap =
-        math.floor(
-            (
-            1 -
-            item.Price / rap
-            )
-            *
-            100
-        )
-
-
-    end
-
-end
-
-
-
-------------------------------------------------
--- SELLER
-------------------------------------------------
-
-local owner =
-booth:GetAttribute(
-    "Owner"
-)
 
     ------------------------------------------------
     -- SELLER
     ------------------------------------------------
 
-    local owner =
-    booth:GetAttribute(
-        "Owner"
+    item.Seller =
+    GetSeller(
+        booth:GetAttribute(
+            "Owner"
+        )
     )
 
 
 
-    local seller =
-    GetSeller(owner)
 
 
+    if uuid then
 
+        UsedUUID[uuid]=true
 
-    ------------------------------------------------
-    -- FOUND
-    ------------------------------------------------
+    end
 
-    FoundItem = true
-
-    FoundCount += 1
-
-
-
-    print("================")
-    print("FOUND",item.Name)
-    print("Mutation",item.Mutation)
-    print("Variant",item.Variant)
-    print("Price",item.Price)
-    print("Seller",seller)
-    print("================")
 
 
 
 
     table.insert(
         FoundItems,
-        {
-
-            Item=item.Name,
-
-            Size = item.Size,
-
-            Mutation=item.Mutation,
-
-            Variant=item.Variant,
-
-            Weight = item.Weight,
-
-            Price=item.Price,
-
-            Seller=seller
-
-        }
+        item
     )
+
+
+
+    FoundCount += 1
+
+
+
+
+
+    print("================")
+    print("FOUND",item.Name)
+    print("TYPE",item.ItemType)
+    print("BASE",item.BaseName)
+    print("VARIANT",item.Variant)
+    print("MUTATION",item.Mutation)
+    print("SIZE",item.Size)
+    print("WEIGHT",item.Weight)
+    print("PRICE",item.Price)
+    print("RAP",item.RAP)
+    print("================")
 
 
 
 end
 
---================================================--
--- JP FINDER FISCH FINAL V3
--- PART 2/3
--- SCAN + SERVER CACHE + SCRAPE
---================================================--
+
+
+
+
 
 
 ------------------------------------------------
--- SCAN ALL BOOTH
+-- SCAN BOOTHS
 ------------------------------------------------
 
 local function ScanBooths()
 
 
-    local success,err =
-    pcall(function()
 
-
-        local booths =
-        workspace
-        .Islands
-        .TradePlaza
-        .Booths
+    local trade =
+    workspace:
+    FindFirstChild(
+        "Islands"
+    )
 
 
 
-        for _,booth in ipairs(
-            booths:GetChildren()
+    if not trade then
+
+        return
+
+    end
+
+
+
+    trade =
+    trade:
+    FindFirstChild(
+        "TradePlaza",
+        true
+    )
+
+
+
+    if not trade then
+
+        return
+
+    end
+
+
+
+
+
+    local booths =
+    trade:
+    FindFirstChild(
+        "Booths"
+    )
+
+
+
+    if not booths then
+
+        return
+
+    end
+
+
+
+
+
+    for _,booth in ipairs(
+        booths:GetChildren()
+    )
+    do
+
+
+        local plane =
+        booth:FindFirstChild(
+            "Plane"
         )
-        do
 
 
-            local plane =
-            booth:FindFirstChild(
-                "Plane"
+
+        if plane then
+
+
+            local gui =
+            plane:FindFirstChild(
+                "SurfaceGui"
             )
 
 
-            if plane then
+
+            if gui then
 
 
-                local gui =
-                plane:FindFirstChild(
-                    "SurfaceGui"
+                local items =
+                gui:FindFirstChild(
+                    "Items"
                 )
 
 
 
-                if gui then
+                if items then
 
 
-                    local items =
-                    gui:FindFirstChild(
-                        "Items"
+                    for _,frame in ipairs(
+                        items:GetChildren()
                     )
+                    do
 
 
-
-                    if items then
-
+                        if frame:IsA("Frame") then
 
 
-                        for _,frame in ipairs(
-                            items:GetChildren()
-                        )
-                        do
-
-
-                            if frame:IsA("Frame") then
-
-
-                                CheckItem(
-                                    frame,
-                                    booth
-                                )
-
-
-                            end
+                            CheckItem(
+                                frame,
+                                booth
+                            )
 
 
                         end
@@ -1053,18 +1735,281 @@ local function ScanBooths()
         end
 
 
-    end)
+    end
 
 
 
-    if not success then
+end
 
-        warn(
-            "[SCAN BOOTH ERROR]",
-            err
-        )
+
+
+
+--================================================--
+-- WEBHOOK SYSTEM AUTO SPLIT
+--================================================--
+
+local function BuildItemText(item)
+
+
+    local text =
+
+    "━━━━━━━━━━━━━━\n\n"
+
+
+    text =
+    text
+    ..
+    "🎣 **"
+    ..
+    tostring(item.Name or "-")
+    ..
+    "**\n\n"
+
+
+
+    text =
+    text
+    ..
+    "**Seller**\n"
+    ..
+    tostring(item.Seller or "-")
+    ..
+    "\n\n"
+
+
+
+    text =
+    text
+    ..
+    "Type : "
+    ..
+    tostring(item.ItemType or "-")
+    ..
+    "\n"
+
+
+
+    ------------------------------------------------
+    -- VARIANT
+    ------------------------------------------------
+
+    if item.Variant
+    and item.Variant ~= ""
+    then
+
+        text =
+        text
+        ..
+        "Variant : "
+        ..
+        item.Variant
+        ..
+        "\n"
 
     end
+
+
+
+    ------------------------------------------------
+    -- MUTATION
+    ------------------------------------------------
+
+    if item.Mutation
+    and item.Mutation ~= ""
+    then
+
+        text =
+        text
+        ..
+        "Mutation : "
+        ..
+        item.Mutation
+        ..
+        "\n"
+
+    end
+
+
+
+
+    ------------------------------------------------
+    -- SIZE
+    ------------------------------------------------
+
+    if item.Size
+    and item.Size ~= ""
+    then
+
+        text =
+        text
+        ..
+        "Size : "
+        ..
+        item.Size
+        ..
+        "\n"
+
+    end
+
+
+
+
+    ------------------------------------------------
+    -- WEIGHT
+    ------------------------------------------------
+
+    if item.Weight
+    and item.Weight ~= ""
+    then
+
+        text =
+        text
+        ..
+        "Weight : "
+        ..
+        item.Weight
+        ..
+        "\n"
+
+    end
+
+
+
+
+    text =
+    text
+    ..
+    "\nPrice : "
+    ..
+    tostring(item.Price or 0)
+    ..
+    "\n"
+
+
+
+    text =
+    text
+    ..
+    "RAP : "
+    ..
+    tostring(item.RAP or "-")
+    ..
+    "\n"
+
+
+
+    if item.UnderRap then
+
+
+        text =
+        text
+        ..
+        "Under RAP : "
+        ..
+        tostring(item.UnderRap)
+        ..
+        "%\n"
+
+
+    end
+
+
+
+    text =
+    text
+    ..
+    "\n"
+
+
+
+    return text
+
+
+end
+
+
+
+
+
+
+------------------------------------------------
+-- SPLIT ITEM AUTO
+------------------------------------------------
+
+local function SplitItems(items)
+
+
+    local result = {}
+
+    local buffer = ""
+
+
+
+    for _,item in ipairs(items)
+    do
+
+
+
+        local itemText =
+        BuildItemText(item)
+
+
+
+        -- Discord safe limit
+        if
+        (#buffer + #itemText)
+        >
+        3000
+        then
+
+
+            table.insert(
+                result,
+                buffer
+            )
+
+
+            buffer =
+            itemText
+
+
+
+        else
+
+
+
+            buffer =
+            buffer
+            ..
+            itemText
+
+
+
+        end
+
+
+
+    end
+
+
+
+
+
+    if buffer ~= ""
+    then
+
+
+        table.insert(
+            result,
+            buffer
+        )
+
+
+    end
+
+
+
+    return result
 
 
 end
@@ -1076,17 +2021,685 @@ end
 
 
 ------------------------------------------------
--- SERVER CACHE V3
+-- CREATE EMBED
+------------------------------------------------
+
+local function CreateEmbed(
+    items,
+    part,
+    totalPart
+)
+
+
+    local PlaceId =
+    game.PlaceId
+
+
+    local JobId =
+    game.JobId
+
+
+
+    local joinLink =
+
+    "https://www.roblox.com/games/start?placeId="
+    ..
+    PlaceId
+    ..
+    "&gameInstanceId="
+    ..
+    JobId
+
+
+
+
+
+
+    return {
+
+
+        title =
+
+        "🎣 W FINDER FOUND ("
+        ..
+        #items
+        ..
+        " ITEMS)"
+        ..
+        (
+            totalPart > 1
+            and
+            " PART "..part.."/"..totalPart
+            or
+            ""
+        ),
+
+
+
+        color = 65280,
+
+
+
+        fields = {
+
+
+
+            {
+
+                name =
+                "Server",
+
+
+                value =
+
+                tostring(
+                    #Players:GetPlayers()
+                )
+                ..
+                "/"
+                ..
+                tostring(
+                    Players.MaxPlayers
+                ),
+
+
+                inline=false
+
+            },
+
+
+
+
+
+            {
+
+                name =
+                "JobId",
+
+
+                value =
+
+
+                "📋 Copy mobile:\n"
+                ..
+                "`"
+                ..
+                JobId
+                ..
+                "`\n\n"
+
+
+                ..
+
+
+                "📋 Copy desktop:\n"
+                ..
+                "```"
+                ..
+                JobId
+                ..
+                "```",
+
+
+
+                inline=false
+
+
+            },
+
+
+
+
+
+            {
+
+                name =
+                "Join Server",
+
+
+                value =
+
+                "🔗 "
+                ..
+                joinLink,
+
+
+                inline=false
+
+
+            },
+
+
+
+
+
+            {
+
+                name =
+                "Items",
+
+
+                value =
+
+                SplitItems(items)[part]
+                or
+                "-",
+
+
+                inline=false
+
+
+            }
+
+
+
+        },
+
+
+
+        footer = {
+
+
+            text =
+
+            "W FINDER  | JobId : "
+            ..
+            JobId
+
+
+        }
+
+
+    }
+
+
+end
+
+
+
+
+
+
+
+
+------------------------------------------------
+-- SEND WEBHOOK
+------------------------------------------------
+
+------------------------------------------------
+-- WEBHOOK BY CATEGORY
+------------------------------------------------
+
+local function SendWebhook(items)
+
+
+    local grouped = {}
+
+
+
+    for _,item in ipairs(items) do
+
+
+        local typeName =
+        item.ItemType
+
+
+
+        if Config.Webhook[typeName]
+        then
+
+
+            if not grouped[typeName]
+            then
+
+                grouped[typeName]={}
+
+            end
+
+
+
+            table.insert(
+                grouped[typeName],
+                item
+            )
+
+
+        end
+
+
+    end
+
+
+
+
+
+    for itemType,list in pairs(grouped)
+    do
+
+
+
+        local webhook =
+        Config.Webhook[itemType]
+
+
+
+        if webhook
+        and webhook ~= ""
+        then
+
+
+
+            local itemText = ""
+
+
+
+
+            for _,item in ipairs(list)
+            do
+
+
+
+                itemText =
+                itemText
+                ..
+                "━━━━━━━━━━━━━━\n\n"
+
+
+
+                itemText =
+                itemText
+                ..
+                "🎣 **"
+                ..
+                tostring(item.Name)
+                ..
+                "**\n\n"
+
+
+
+                itemText =
+                itemText
+                ..
+                "**Seller**\n"
+                ..
+                tostring(item.Seller or "-")
+                ..
+                "\n\n"
+
+
+
+                itemText =
+                itemText
+                ..
+                "Type : "
+                ..
+                item.ItemType
+                ..
+                "\n"
+
+
+
+                if item.Variant
+                and item.Variant ~= ""
+                then
+
+                    itemText =
+                    itemText
+                    ..
+                    "Variant : "
+                    ..
+                    item.Variant
+                    ..
+                    "\n"
+
+                end
+
+
+
+                if item.Mutation
+                and item.Mutation ~= ""
+                then
+
+                    itemText =
+                    itemText
+                    ..
+                    "Mutation : "
+                    ..
+                    item.Mutation
+                    ..
+                    "\n"
+
+                end
+
+
+
+                if item.Size
+                and item.Size ~= ""
+                then
+
+                    itemText =
+                    itemText
+                    ..
+                    "Size : "
+                    ..
+                    item.Size
+                    ..
+                    "\n"
+
+                end
+
+
+
+                if item.Weight
+                and item.Weight ~= ""
+                and item.Weight ~= "-"
+                then
+
+                    itemText =
+                    itemText
+                    ..
+                    "Weight : "
+                    ..
+                    item.Weight
+                    ..
+                    "\n"
+
+                end
+
+
+
+
+                itemText =
+                itemText
+                ..
+                "\nPrice : "
+                ..
+                tostring(item.Price or 0)
+                ..
+                "\n"
+
+
+
+                itemText =
+                itemText
+                ..
+                "RAP : "
+                ..
+                tostring(item.RAP or "-")
+                ..
+                "\n"
+
+
+
+                if item.UnderRap then
+
+
+                    itemText =
+                    itemText
+                    ..
+                    "Under RAP : "
+                    ..
+                    item.UnderRap
+                    ..
+                    "%\n"
+
+
+                end
+
+
+
+                itemText =
+                itemText
+                ..
+                "\n"
+
+
+            end
+
+
+
+
+
+
+
+            local joinLink =
+
+            "https://www.roblox.com/games/start?placeId="
+            ..
+            game.PlaceId
+            ..
+            "&gameInstanceId="
+            ..
+            game.JobId
+
+
+
+
+
+
+
+            local payload = {
+
+
+                username =
+                "W FINDER",
+
+
+
+                embeds = {
+
+
+                    {
+
+
+                        title =
+
+                        "🎣 W FINDER FOUND "
+                        ..
+                        #list
+                        ..
+                        " "
+                        ..
+                        string.upper(itemType),
+
+
+
+                        color =
+                        65280,
+
+
+
+                        fields = {
+
+
+
+                            {
+
+                                name="Server",
+
+                                value =
+                                #Players:GetPlayers()
+                                ..
+                                "/"
+                                ..
+                                Players.MaxPlayers,
+
+                                inline=false
+
+                            },
+
+
+
+                            {
+
+                                name="JobId",
+
+                                value =
+
+                                "📋 Copy mobile:\n"
+                                ..
+                                "`"
+                                ..
+                                game.JobId
+                                ..
+                                "`\n\n"
+
+                                ..
+
+                                "📋 Copy desktop:\n"
+                                ..
+                                "```"
+                                ..
+                                game.JobId
+                                ..
+                                "```",
+
+                                inline=false
+
+                            },
+
+
+
+                            {
+
+                                name="Join Server",
+
+                                value =
+                                "🔗 "
+                                ..
+                                joinLink,
+
+                                inline=false
+
+                            },
+
+
+
+                            {
+
+                                name="Items",
+
+                                value =
+                                itemText:sub(1,1024),
+
+                                inline=false
+
+                            }
+
+
+                        },
+
+
+
+                        footer={
+
+                            text =
+                            "W FINDER"
+
+                        }
+
+
+                    }
+
+
+                }
+
+
+            }
+
+
+
+
+            local body =
+            HttpService:JSONEncode(
+                payload
+            )
+
+
+
+
+            local req =
+            request
+            or http_request
+            or syn.request
+
+
+
+
+            if req then
+
+
+                req({
+
+                    Url =
+                    webhook,
+
+
+                    Method =
+                    "POST",
+
+
+                    Headers =
+                    {
+
+                        ["Content-Type"]=
+                        "application/json"
+
+                    },
+
+
+                    Body =
+                    body
+
+
+                })
+
+
+
+                print(
+                    "WEBHOOK SENT",
+                    itemType,
+                    #list
+                )
+
+
+            end
+
+
+
+        end
+
+
+
+    end
+
+
+
+end
+
+
+
+
+
+--================================================--
+
+-- SERVER CACHE + SCRAPE + SERVER HOP
+--================================================--
+
+
+------------------------------------------------
+-- SERVER CACHE
 ------------------------------------------------
 
 local ServerCacheFile =
-"JP_FINDER_SERVERS_V3.json"
+"JP_FINDER_V7_2_SERVERS.json"
 
 
 
 local ServerList = {}
 
 local TriedServers = {}
+
 
 
 
@@ -1107,43 +2720,34 @@ local function SaveServerCache()
 
 
 
-    local data = {
+    pcall(function()
 
 
-        Servers =
-        ServerList,
+        writefile(
+
+            ServerCacheFile,
+
+            HttpService:JSONEncode({
+
+                Servers =
+                ServerList,
 
 
-        Tried =
-        TriedServers
+                Tried =
+                TriedServers
 
 
-    }
+            })
 
-
-
-    writefile(
-
-        ServerCacheFile,
-
-        HttpService:JSONEncode(
-            data
         )
 
-    )
 
+    end)
 
-
-    print(
-
-        "[CACHE SAVED]",
-        "SERVERS:",
-        #ServerList
-
-    )
 
 
 end
+
 
 
 
@@ -1160,17 +2764,21 @@ local function LoadServerCache()
 
     if not readfile
     or not isfile
-    or not isfile(ServerCacheFile)
     then
 
+        return
 
-        print(
-            "[CACHE EMPTY]"
-        )
+    end
 
 
-        return false
 
+
+    if not isfile(
+        ServerCacheFile
+    )
+    then
+
+        return
 
     end
 
@@ -1179,6 +2787,7 @@ local function LoadServerCache()
 
 
     local success,data =
+
     pcall(function()
 
 
@@ -1196,10 +2805,10 @@ local function LoadServerCache()
 
 
 
+
     if success
     and data
     then
-
 
 
         ServerList =
@@ -1218,21 +2827,13 @@ local function LoadServerCache()
 
             "[CACHE LOADED]",
 
-            "SERVER:",
             #ServerList
 
         )
 
 
-
-        return true
-
-
     end
 
-
-
-    return false
 
 
 end
@@ -1244,7 +2845,7 @@ end
 
 
 ------------------------------------------------
--- CHECK SERVER ALREADY USED
+-- SERVER USED CHECK
 ------------------------------------------------
 
 local function IsServerUsed(id)
@@ -1271,7 +2872,7 @@ local function GetAllServers()
 
 
     print(
-        "=== SCRAPE SERVER LIST ==="
+        "=== SCRAPE SERVER ==="
     )
 
 
@@ -1279,6 +2880,9 @@ local function GetAllServers()
     local servers = {}
 
     local cursor = ""
+
+    local page = 0
+
 
 
 
@@ -1290,9 +2894,10 @@ local function GetAllServers()
 
         local url =
 
+
         "https://games.roblox.com/v1/games/"
         ..
-        PlaceId
+        tostring(PlaceId)
         ..
         "/servers/Public?sortOrder=Desc&limit=100"
 
@@ -1318,7 +2923,9 @@ local function GetAllServers()
 
 
 
-        local success,result =
+
+        local success,response =
+
 
         pcall(function()
 
@@ -1338,10 +2945,7 @@ local function GetAllServers()
 
 
             warn(
-
-                "[SCRAPE ERROR]",
-                result
-
+                "[SCRAPE ERROR]"
             )
 
 
@@ -1354,13 +2958,14 @@ local function GetAllServers()
 
 
 
-        local decodeSuccess,data =
+        local decode,data =
+
 
         pcall(function()
 
 
             return HttpService:JSONDecode(
-                result
+                response
             )
 
 
@@ -1370,7 +2975,7 @@ local function GetAllServers()
 
 
 
-        if not decodeSuccess
+        if not decode
         or not data
         or not data.data
         then
@@ -1392,15 +2997,27 @@ local function GetAllServers()
 
 
 
-            if server.id ~= game.JobId
+            if
 
-            and server.playing >= Config.MinPlayer
+            server.id ~= game.JobId
 
-            and server.playing <= Config.MaxPlayer
+            and
 
-            and server.playing < server.maxPlayers
+            server.playing >= Config.Server.MinPlayer
 
-            and not IsServerUsed(server.id)
+            and
+
+            server.playing <= Config.Server.MaxPlayer
+
+            and
+
+            server.playing < server.maxPlayers
+
+            and
+
+            not IsServerUsed(
+                server.id
+            )
 
             then
 
@@ -1418,6 +3035,21 @@ local function GetAllServers()
             end
 
 
+        end
+
+
+
+
+
+        page += 1
+
+
+
+
+
+        if page >= 5 then
+
+            break
 
         end
 
@@ -1427,19 +3059,15 @@ local function GetAllServers()
 
         if not data.nextPageCursor then
 
-
             break
-
 
         end
 
 
 
 
-
         cursor =
         data.nextPageCursor
-
 
 
 
@@ -1467,18 +3095,15 @@ local function GetAllServers()
 
 
 
-
     return servers
+
 
 
 end
 
 
---================================================--
--- JP FINDER FISCH FINAL V3
--- PART 3/3
--- SERVER HOP + START
---================================================--
+
+
 
 
 
@@ -1488,41 +3113,79 @@ end
 
 local function GetNextServer()
 
-    -- kalau ServerList kosong, coba load cache
+
+
     if #ServerList == 0 then
-        LoadServerCache()
+
+
+        ServerList =
+        GetAllServers()
+
+
     end
 
-    -- kalau masih kosong, reset TriedServers lalu scrape ulang
+
+
+
+
     if #ServerList == 0 then
-        print("[CACHE EMPTY] RESET TRIED SERVERS")
+
+
+
+        print(
+            "[RESET SERVER CACHE]"
+        )
+
+
 
         TriedServers = {}
 
-        if writefile and isfile and isfile(ServerCacheFile) then
-            delfile(ServerCacheFile)
-        end
 
-        ServerList = GetAllServers()
+
+        ServerList =
+        GetAllServers()
+
+
+
     end
 
-    -- kalau tetap tidak ada server
-    if #ServerList == 0 then
-        warn("[NO SERVER AVAILABLE]")
-        return nil
+
+
+
+
+    local serverId =
+
+    table.remove(
+        ServerList,
+        1
+    )
+
+
+
+
+
+    if serverId then
+
+
+        TriedServers[serverId]=true
+
+
+        SaveServerCache()
+
+
+
     end
 
-    -- ambil server pertama
-    local serverId = table.remove(ServerList, 1)
 
-    -- tandai sudah dicoba
-    TriedServers[serverId] = true
 
-    -- simpan cache
-    SaveServerCache()
+
 
     return serverId
+
+
+
 end
+
 
 
 
@@ -1537,13 +3200,24 @@ local function ServerHop()
 
 
 
+    if not Config.Server.AutoHop then
+
+        return
+
+    end
+
+
+
+
+
     print(
-        "===================="
+        "================="
     )
 
     print(
         "START SERVER HOP"
     )
+
 
 
 
@@ -1560,8 +3234,14 @@ local function ServerHop()
     if not target then
 
 
+
+        warn(
+            "NO SERVER TARGET"
+        )
+
+
         task.wait(
-            Config.HopDelay
+            Config.Server.HopDelay
         )
 
 
@@ -1577,14 +3257,7 @@ local function ServerHop()
 
         if not target then
 
-
-            warn(
-                "NO TARGET SERVER"
-            )
-
-
             return
-
 
         end
 
@@ -1595,10 +3268,15 @@ local function ServerHop()
 
 
 
+
     print(
+
         "[TELEPORT]",
+
         target
+
     )
+
 
 
 
@@ -1609,7 +3287,9 @@ local function ServerHop()
     pcall(function()
 
 
+
         TeleportService:
+
         TeleportToPlaceInstance(
 
             PlaceId,
@@ -1621,7 +3301,10 @@ local function ServerHop()
         )
 
 
+
     end)
+
+
 
 
 
@@ -1631,20 +3314,26 @@ local function ServerHop()
 
 
         warn(
+
             "[TELEPORT ERROR]",
+
             err
+
         )
 
 
         task.wait(
-            Config.HopDelay
+            3
         )
 
 
         ServerHop()
 
 
+
     end
+
+
 
 
 end
@@ -1660,23 +3349,33 @@ end
 ------------------------------------------------
 
 TeleportService.TeleportInitFailed:Connect(
+
 function(
-    player,
-    result,
-    message
+
+player,
+
+result,
+
+message
+
 )
 
 
+
     warn(
+
         "[TELEPORT FAILED]",
+
         result,
+
         message
+
     )
 
 
 
     task.wait(
-        Config.HopDelay
+        Config.Server.HopDelay
     )
 
 
@@ -1691,123 +3390,318 @@ end)
 
 
 
-
+--================================================--
+-- MAIN LOOP + START SYSTEM
+--================================================--
 
 
 ------------------------------------------------
--- START FINDER
+-- RESET SCAN
 ------------------------------------------------
 
-local function StartFinder()
+local function ResetScan()
 
-
-
-    print(
-        "🎣 JP FINDER START"
+    table.clear(
+        FoundItems
     )
 
 
-
-    while true do
-
-
-
-        ------------------------------------------------
-        -- RESET DATA SERVER BARU
-        ------------------------------------------------
-
-        FoundItem = false
-
-        FoundCount = 0
+    table.clear(
+        UsedUUID
+    )
 
 
-        table.clear(
-            FoundItems
+    FoundCount = 0
+
+
+end
+
+
+
+
+
+------------------------------------------------
+-- SERVER INFO
+------------------------------------------------
+
+local function GetServerInfo()
+
+
+    return {
+
+        JobId =
+        game.JobId,
+
+
+        PlaceId =
+        PlaceId,
+
+
+        Players =
+        #Players:GetPlayers(),
+
+
+        MaxPlayers =
+        game:GetService("Players").MaxPlayers
+
+
+    }
+
+
+end
+
+
+
+
+
+
+------------------------------------------------
+-- JOIN SERVER LINK
+------------------------------------------------
+
+local function GetJoinLink()
+
+
+    return
+
+    "https://www.roblox.com/games/"
+    ..
+    PlaceId
+    ..
+    "?gameInstanceId="
+    ..
+    game.JobId
+
+
+end
+
+
+
+
+
+
+------------------------------------------------
+-- WEBHOOK FULL FIX
+------------------------------------------------
+local function GetWebhook(itemType)
+
+    return Config.Webhook[itemType]
+
+end
+------------------------------------------------
+-- WEBHOOK TYPE SPLIT FIX
+------------------------------------------------
+
+local function GetWebhook(itemType)
+
+    return Config.Webhook[itemType]
+
+end
+
+
+
+local function BuildItemText(item)
+
+
+    local text =
+
+    "━━━━━━━━━━━━━━\n\n"
+
+
+    text =
+    text
+    .."🎣 **"
+    ..tostring(item.Name or "-")
+    .."**\n\n"
+
+
+
+    text =
+    text
+    .."**Seller**\n"
+    ..tostring(item.Seller or "-")
+    .."\n\n"
+
+
+
+    text =
+    text
+    .."Type : "
+    ..tostring(item.ItemType or "-")
+    .."\n\n"
+
+
+
+    if item.Variant
+    and item.Variant ~= ""
+    then
+
+        text =
+        text
+        .."Variant : "
+        ..item.Variant
+        .."\n"
+
+    end
+
+
+
+    if item.Mutation
+    and item.Mutation ~= ""
+    then
+
+        text =
+        text
+        .."Mutation : "
+        ..item.Mutation
+        .."\n"
+
+    end
+
+
+
+    if item.Size
+    and item.Size ~= ""
+    then
+
+        text =
+        text
+        .."Size : "
+        ..item.Size
+        .."\n"
+
+    end
+
+
+
+    if item.Weight
+    and item.Weight ~= ""
+    and item.Weight ~= "-"
+    then
+
+        text =
+        text
+        .."Weight : "
+        ..item.Weight
+        .."\n"
+
+    end
+
+
+
+    text =
+    text
+    .."\nPrice : "
+    ..tostring(item.Price or 0)
+    .."\n"
+
+
+
+    text =
+    text
+    .."RAP : "
+    ..tostring(item.RAP or "-")
+    .."\n"
+
+
+
+    if item.UnderRap then
+
+        text =
+        text
+        .."Under RAP : "
+        ..tostring(item.UnderRap)
+        .."%\n"
+
+    end
+
+
+    text =
+    text
+    .."\n"
+
+
+    return text
+
+
+end
+
+
+
+
+
+local function SendWebhook(items)
+
+
+
+    local grouped = {}
+
+
+
+    for _,item in ipairs(items) do
+
+
+        local hook =
+        GetWebhook(
+            item.ItemType
         )
 
 
-        table.clear(
-            UsedUUID
-        )
+
+        if hook then
 
 
+            if not grouped[hook] then
+
+                grouped[hook]={}
+
+            end
 
 
-        ------------------------------------------------
-        -- WAIT LOADING GAME
-        ------------------------------------------------
-
-        print(
-            "[WAIT]",
-            Config.LoadDelay
-        )
-
-
-        task.wait(
-            Config.LoadDelay
-        )
-
-
-
-
-
-        ------------------------------------------------
-        -- SCAN
-        ------------------------------------------------
-
-        print(
-            "[SCAN START]"
-        )
-
-
-
-        ScanBooths()
-
-
-
-        print(
-            "[SCAN FINISH]",
-            FoundCount
-        )
-
-
-
-
-
-
-
-        ------------------------------------------------
-        -- WEBHOOK
-        ------------------------------------------------
-
-        if FoundCount > 0 then
-
-
-
-            print(
-                "[FOUND ITEM]",
-                FoundCount
+            table.insert(
+                grouped[hook],
+                item
             )
 
 
-
-            SendWebhook(
-                FoundItems
-            )
+        end
 
 
-
-            task.wait(
-                Config.StayTime
-            )
+    end
 
 
-        else
 
 
-            print(
-                "[NO TARGET]"
-            )
+
+    for webhook,list in pairs(grouped) do
+
+
+
+        local itemText = ""
+
+
+
+        for _,item in ipairs(list) do
+
+
+            local add =
+            BuildItemText(item)
+
+
+
+            -- discord field max
+            if #itemText + #add > 900 then
+
+                break
+
+            end
+
+
+
+            itemText =
+            itemText
+            ..add
+
 
 
         end
@@ -1816,36 +3710,220 @@ local function StartFinder()
 
 
 
+        local joinLink =
+
+        "https://www.roblox.com/games/start?placeId="
+        ..
+        game.PlaceId
+        ..
+        "&gameInstanceId="
+        ..
+        game.JobId
 
 
-        ------------------------------------------------
-        -- AUTO HOP
-        ------------------------------------------------
 
-        if Config.AutoHop then
+
+
+        local payload = {
+
+
+            username =
+            "W FINDER",
+
+
+            embeds =
+            {
+
+
+                {
+
+
+                    title =
+
+                    "🎣 W FINDER FOUND ("
+                    ..
+                    #list
+                    ..
+                    " ITEMS)",
+
+
+
+                    color =
+                    65280,
+
+
+
+                    fields =
+                    {
+
+
+                        {
+
+
+                            name =
+                            "Server",
+
+                            value =
+
+                            tostring(
+                                #Players:GetPlayers()
+                            )
+                            ..
+                            "/"
+                            ..
+                            tostring(
+                                Players.MaxPlayers
+                            ),
+
+                            inline=false
+
+                        },
+
+
+
+                        {
+
+
+                            name =
+                            "JobId",
+
+                            value =
+
+                            "📋 Copy mobile:\n"
+                            ..
+                            "`"
+                            ..
+                            game.JobId
+                            ..
+                            "`\n\n"
+                            ..
+                            "📋 Copy desktop:\n"
+                            ..
+                            "```"
+                            ..
+                            game.JobId
+                            ..
+                            "```",
+
+                            inline=false
+
+
+                        },
+
+
+
+                        {
+
+
+                            name =
+                            "Join Server",
+
+                            value =
+
+                            "🔗 "
+                            ..
+                            joinLink,
+
+                            inline=false
+
+
+                        },
+
+
+
+                        {
+
+
+                            name =
+                            "Items",
+
+                            value =
+
+                            itemText,
+
+                            inline=false
+
+
+                        }
+
+
+
+                    },
+
+
+
+                    footer = {
+
+                        text =
+                        "W FINDER | "
+                        ..
+                        game.JobId
+
+                    }
+
+
+                }
+
+
+            }
+
+
+        }
+
+
+
+
+
+        local body =
+        HttpService:JSONEncode(
+            payload
+        )
+
+
+
+
+        local req =
+        request
+        or http_request
+        or syn.request
+
+
+
+
+        if req then
+
+
+            req({
+
+                Url =
+                webhook,
+
+
+                Method =
+                "POST",
+
+
+                Headers =
+                {
+
+                    ["Content-Type"] =
+                    "application/json"
+
+                },
+
+
+                Body =
+                body
+
+            })
 
 
 
             print(
-                "[NEXT SERVER AFTER]",
-                Config.HopDelay
+            "WEBHOOK SENT",
+            #list,
+            webhook
             )
-
-
-
-            task.wait(
-                Config.HopDelay
-            )
-
-
-
-            ServerHop()
-
-
-
-            -- tunggu teleport
-            break
-
 
 
         end
@@ -1853,6 +3931,112 @@ local function StartFinder()
 
 
     end
+
+
+
+end
+
+------------------------------------------------
+-- RUN SCAN
+------------------------------------------------
+
+local function RunScan()
+
+
+
+    print(
+        "======================"
+    )
+
+
+    print(
+        "🎣 START SCAN "
+    )
+
+
+
+    print(
+        "JOB:",
+        game.JobId
+    )
+
+
+
+
+
+    ResetScan()
+
+
+
+
+
+
+    task.wait(
+        Config.LoadDelay
+    )
+
+
+
+
+
+    print(
+        "[SCAN BOOTH]"
+    )
+
+
+
+    local success,err =
+
+    pcall(function()
+
+
+        ScanBooths()
+
+
+    end)
+
+
+
+
+
+    if not success then
+
+
+        warn(
+            "[SCAN ERROR]",
+            err
+        )
+
+
+    end
+
+
+
+
+
+
+    print(
+        "[FOUND]",
+        FoundCount
+    )
+
+
+
+
+
+
+    if FoundCount > 0 then
+
+
+
+        SendWebhook(
+            FoundItems
+        )
+
+
+
+    end
+
 
 
 end
@@ -1864,7 +4048,115 @@ end
 
 
 ------------------------------------------------
--- LOAD CACHE FIRST
+-- MAIN FINDER LOOP
+------------------------------------------------
+
+local function StartFinder()
+
+
+
+    print(
+        "🎣 W FINDER  START"
+    )
+
+
+
+
+    while true do
+
+
+
+
+
+        local success,err =
+
+        pcall(function()
+
+
+            RunScan()
+
+
+        end)
+
+
+
+
+
+        if not success then
+
+
+            warn(
+                "[MAIN ERROR]",
+                err
+            )
+
+
+        end
+
+
+
+
+
+        ------------------------------------------------
+        -- AUTO HOP
+        ------------------------------------------------
+
+        if Config.Server.AutoHop then
+
+
+
+            print(
+
+                "[HOP AFTER]",
+
+                Config.Server.HopDelay
+
+            )
+
+
+
+            task.wait(
+
+                Config.Server.HopDelay
+
+            )
+
+
+
+            ServerHop()
+
+
+
+            break
+
+
+
+        end
+
+
+
+
+
+        task.wait(
+            10
+        )
+
+
+
+    end
+
+
+
+end
+
+
+
+
+
+
+
+------------------------------------------------
+-- INIT
 ------------------------------------------------
 
 LoadServerCache()
@@ -1873,20 +4165,18 @@ LoadServerCache()
 
 
 
-
-
-------------------------------------------------
--- START
-------------------------------------------------
-
 task.spawn(function()
 
+
     StartFinder()
+
 
 end)
 
 
 
+
+
 print(
-    "🎣 JP FINDER FISCH FINAL V3 LOADED"
+"🎣 W FINDER FISHIT  READY"
 )
