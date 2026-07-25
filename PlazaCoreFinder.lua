@@ -1,7 +1,5 @@
 --================================================--
--- JP FINDER FISCH FINAL V3
--- WITHERING CORE HUNTER
--- PART 1/3
+-- JP FINDER FISHIT v4
 --================================================--
 
 local Players = game:GetService("Players")
@@ -13,7 +11,7 @@ local LocalPlayer = Players.LocalPlayer
 
 
 ------------------------------------------------
--- CONFIG
+-- CONFIG 
 ------------------------------------------------
 
 local Config = {
@@ -22,8 +20,125 @@ local Config = {
     "https://discordapp.com/api/webhooks/1516432952370663529/Fp2ZgaPztDl4CxMS3OyEHqKuG_FoWVz1TOjn1ou_PfhjaWTwsp3ozuOAV9KsxIWQQncP",
 
 
-    TargetItem =
-    "Withering Core",
+    ------------------------------------------------
+    -- FISH
+    ------------------------------------------------
+
+    Fish = {
+
+        Enabled = true,
+
+
+        -- true = hanya nama list
+        -- false = semua fish
+        FilterName = false,
+
+
+        Names = {
+
+            -- contoh
+            "Megalodon",
+            "Ancient Kraken",
+
+        },
+
+
+        Mutation = {
+
+            Enabled = true,
+
+
+            Blacklist = {
+
+                "ghost",
+                "stone",
+                "albino",
+                "shiny",
+                "sandy"
+
+            }
+
+        }
+
+    },
+
+
+
+    ------------------------------------------------
+    -- EQUIPMENT
+    ------------------------------------------------
+
+    Equipment = {
+
+
+        Enabled = true,
+
+
+        -- true = nama tertentu
+        -- false = semua equipment
+
+        FilterName = true,
+
+
+        Names = {
+
+
+            "Withering Core",
+
+
+        },
+
+
+
+        Mutation = {
+
+
+            Enabled = true,
+
+
+            Blacklist = {
+
+                "ghost",
+                "stone",
+                "albino",
+                "shiny",
+                "sandy"
+
+            }
+
+
+        },
+
+
+
+        ------------------------------------------------
+        -- RAP FILTER
+        ------------------------------------------------
+
+        UnderRap = {
+
+
+            Enabled = true,
+
+
+            Percent = 10,
+
+
+
+            FishingRod = true,
+
+            Boat = true,
+
+            Gear = true
+
+
+        }
+
+
+
+    },
+
+
 
 
     AutoHop = true,
@@ -36,14 +151,12 @@ local Config = {
 
     LoadDelay = 10,
 
-
     StayTime = 5,
-
 
     HopDelay = 5
 
-}
 
+}
 
 
 ------------------------------------------------
@@ -323,7 +436,79 @@ local function SendWebhook(items)
 end
 
 
+------------------------------------------------
+-- NAME FILTER
+------------------------------------------------
 
+local function CheckNameFilter(itemName,list)
+
+    for _,name in ipairs(list) do
+
+        if Clean(itemName)
+        ==
+        Clean(name)
+        then
+
+            return true
+
+        end
+
+    end
+
+
+    return false
+
+end
+
+
+
+------------------------------------------------
+-- MUTATION FILTER
+------------------------------------------------
+
+local function CheckMutation(mutation,data)
+
+
+    if not data.Enabled then
+
+        return true
+
+    end
+
+
+
+    if mutation==""
+    or mutation=="normal"
+    then
+
+        return false
+
+    end
+
+
+
+    for _,bad in ipairs(
+        data.Blacklist
+    ) do
+
+
+        if Clean(mutation)
+        :find(
+            Clean(bad)
+        )
+        then
+
+            return false
+
+        end
+
+
+    end
+
+
+    return true
+
+end
 
 
 ------------------------------------------------
@@ -437,28 +622,72 @@ local function CheckItem(frame,booth)
 
 
     ------------------------------------------------
-    -- FILTER ITEM
-    ------------------------------------------------
+-- GET ITEM TYPE
+------------------------------------------------
 
-    if Clean(item.Name)
-    ~=
-    Clean(Config.TargetItem)
-    then
+local itemType =
+frame:GetAttribute(
+    "ItemType"
+)
 
+
+
+if itemType=="Fish" then
+
+
+    if not Config.Fish.Enabled then
         return
+    end
+
+
+
+    if Config.Fish.FilterName then
+
+
+        if not CheckNameFilter(
+            item.Name,
+            Config.Fish.Names
+        )
+        then
+            return
+        end
+
 
     end
 
 
 
+elseif itemType=="Equipment" then
 
-    -- BARU LOCK UUID
-    if uuid then
 
-        UsedUUID[uuid]=true
+
+    if not Config.Equipment.Enabled then
+        return
+    end
+
+
+
+    if Config.Equipment.FilterName then
+
+
+        if not CheckNameFilter(
+            item.Name,
+            Config.Equipment.Names
+        )
+        then
+            return
+        end
+
 
     end
 
+
+
+else
+
+    return
+
+end
 
 ------------------------------------------------
 -- WEIGHT
@@ -521,7 +750,6 @@ end
 
 
 
-
     ------------------------------------------------
     -- VARIANT
     ------------------------------------------------
@@ -564,59 +792,108 @@ end
 
 
 
-    ------------------------------------------------
-    -- MUTATION FILTER
-    ------------------------------------------------
+  ------------------------------------------------
+-- MUTATION CHECK V4
+------------------------------------------------
 
-    local blacklist = {
-
-
-        "ghost",
-
-        "sandy",
-
-        "stone",
-
-        "albino",
-
-        "shiny"
+if itemType=="Fish" then
 
 
-    }
-
-
-
-
-
-    if Clean(item.Mutation)=="" 
-    or Clean(item.Mutation)=="normal"
+    if not CheckMutation(
+        item.Mutation,
+        Config.Fish.Mutation
+    )
     then
 
-
         return
-
 
     end
 
 
 
+elseif itemType=="Equipment" then
 
-    for _,bad in ipairs(blacklist) do
+
+    if not CheckMutation(
+        item.Mutation,
+        Config.Equipment.Mutation
+    )
+    then
+
+        return
+
+    end
 
 
-        if Clean(item.Mutation):find(bad)
-        then
+end
+
+
+------------------------------------------------
+-- RAP FILTER EQUIPMENT
+------------------------------------------------
+
+if itemType=="Equipment"
+and Config.Equipment.UnderRap.Enabled
+then
+
+
+    local rap =
+    GetRAP(
+        item.Name
+    )
+
+
+    if rap and rap > 0 then
+
+
+        local limit =
+
+        rap *
+        (
+            100 -
+            Config.Equipment.UnderRap.Percent
+        )
+        /
+        100
+
+
+
+        if item.Price > limit then
 
             return
 
         end
 
 
+
+        item.RAP = rap
+
+
+        item.UnderRap =
+        math.floor(
+            (
+            1 -
+            item.Price / rap
+            )
+            *
+            100
+        )
+
+
     end
 
+end
 
 
 
+------------------------------------------------
+-- SELLER
+------------------------------------------------
+
+local owner =
+booth:GetAttribute(
+    "Owner"
+)
 
     ------------------------------------------------
     -- SELLER
