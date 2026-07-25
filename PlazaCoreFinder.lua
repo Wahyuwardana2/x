@@ -45,7 +45,7 @@ local Config = {
 
         Mutation = {
 
-            Enabled = true,
+            Enabled = false,
 
 
             Blacklist = {
