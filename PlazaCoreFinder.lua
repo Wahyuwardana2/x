@@ -3398,24 +3398,48 @@ end)
 ------------------------------------------------
 -- RESET SCAN
 ------------------------------------------------
+ResetScan()
 
-local function ResetScan()
+local function WaitGameLoaded(timeout)
+    timeout = timeout or 120
 
-    table.clear(
-        FoundItems
-    )
+    local start = tick()
 
+    repeat
+        task.wait(1)
 
-    table.clear(
-        UsedUUID
-    )
+        local ok = pcall(function()
+            return workspace
+                :FindFirstChild("Islands")
+                :FindFirstChild("TradePlaza", true)
+                :FindFirstChild("Booths")
+        end)
 
+        local booths =
+            workspace:FindFirstChild("Islands")
+            and workspace.Islands:FindFirstChild("TradePlaza", true)
+            and workspace.Islands:FindFirstChild("TradePlaza", true):FindFirstChild("Booths")
 
-    FoundCount = 0
+        if booths and #booths:GetChildren() > 0 then
+            print("[READY] Booth Loaded")
+            return true
+        end
 
+    until tick() - start > timeout
 
+    warn("[TIMEOUT] Booth not loaded")
+    return false
 end
 
+print("[WAIT MAP LOADING]")
+
+WaitGameLoaded()
+
+task.wait(2)
+
+print("[SCAN BOOTH]")
+
+ScanBooths()
 
 
 
