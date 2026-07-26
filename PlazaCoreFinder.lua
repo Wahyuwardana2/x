@@ -74,7 +74,7 @@ Debug = true,
 -- LOAD
 ------------------------------------------------
 
-LoadDelay = 5,
+LoadDelay = 8,
 
 StayTime = 5,
 
@@ -93,7 +93,7 @@ Items = {
 
 Fish = {
 
-Enabled = false,
+Enabled = true,
 
 
 FilterName = true,
@@ -158,14 +158,9 @@ Names = {
 
 Mutation = {
 
-Enabled = true,
+Enabled = false,
 
-Blacklist = {
-"ghost",
-"stone",
-"albino",
-"sandy"
-}
+Blacklist = {}
 
 },
 
@@ -206,7 +201,7 @@ RAP = {
 
 Enabled = true,
 
-Percent = 7
+Percent = 1
 
 }
 
@@ -228,7 +223,7 @@ Boats = {
 Enabled = true,
 
 
-FilterName = false,
+FilterName = true,
 
 
 Names = {
@@ -242,7 +237,7 @@ RAP = {
 
 Enabled = true,
 
-Percent = 7
+Percent = 1
 
 }
 
@@ -260,7 +255,7 @@ Percent = 7
 Equipment = {
 
 
-Enabled = true,
+Enabled = false,
 
 
 FilterName = false,
@@ -271,9 +266,9 @@ Names = {},
 
 RAP = {
 
-Enabled = true,
+Enabled = false,
 
-Percent = 15
+Percent = 1
 
 }
 
@@ -365,7 +360,7 @@ MinPlayer = 1,
 MaxPlayer = 20,
 
 
-HopDelay = 5
+HopDelay = 10
 
 
 }
@@ -2032,7 +2027,7 @@ local function CreateEmbed(
 
 
     local PlaceId =
-    79378095465365
+    game.PlaceId
 
 
     local JobId =
@@ -3398,48 +3393,24 @@ end)
 ------------------------------------------------
 -- RESET SCAN
 ------------------------------------------------
-ResetScan()
 
-local function WaitGameLoaded(timeout)
-    timeout = timeout or 120
+local function ResetScan()
 
-    local start = tick()
+    table.clear(
+        FoundItems
+    )
 
-    repeat
-        task.wait(1)
 
-        local ok = pcall(function()
-            return workspace
-                :FindFirstChild("Islands")
-                :FindFirstChild("TradePlaza", true)
-                :FindFirstChild("Booths")
-        end)
+    table.clear(
+        UsedUUID
+    )
 
-        local booths =
-            workspace:FindFirstChild("Islands")
-            and workspace.Islands:FindFirstChild("TradePlaza", true)
-            and workspace.Islands:FindFirstChild("TradePlaza", true):FindFirstChild("Booths")
 
-        if booths and #booths:GetChildren() > 0 then
-            print("[READY] Booth Loaded")
-            return true
-        end
+    FoundCount = 0
 
-    until tick() - start > timeout
 
-    warn("[TIMEOUT] Booth not loaded")
-    return false
 end
 
-print("[WAIT MAP LOADING]")
-
-WaitGameLoaded()
-
-task.wait(2)
-
-print("[SCAN BOOTH]")
-
-ScanBooths()
 
 
 
