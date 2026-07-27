@@ -360,7 +360,7 @@ Server = {
 AutoHop = true,
 
 
-MinPlayer = 1,
+MinPlayer = 7,
 
 
 MaxPlayer = 20,
