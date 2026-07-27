@@ -2085,8 +2085,7 @@ local function CreateEmbed(
 )
 
 
-    local PlaceId =
-    79378095465365
+    local PlaceId = game.PlaceId
 
 
     local JobId =
