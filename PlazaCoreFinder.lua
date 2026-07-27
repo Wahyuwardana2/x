@@ -101,7 +101,7 @@ FilterName = true,
 
 Names = {
 
-"Ruby"
+"Megalodon"
 
 },
 
@@ -112,14 +112,19 @@ Enabled = true,
 
 Blacklist = {
 
-"ghost",
-"stone",
-"albino",
-"sandy"
-
+""
 }
 
+
+
 },
+
+Price = {
+        Enabled = true,
+        Min = 10,
+        Max = 555
+},
+
 
 
 RAP = {
@@ -601,8 +606,33 @@ end
 
 
 
+------------------------------------------------
+-- PRICE FILTER
+------------------------------------------------
+local function CheckPrice(item)
+    local category = GetCategory(item.ItemType)
 
+    if not category then
+        return true
+    end
 
+    if not category.Price or not category.Price.Enabled then
+        return true
+    end
+
+    local min = category.Price.Min or 0
+    local max = category.Price.Max or math.huge
+
+    if item.Price < min then
+        return false
+    end
+
+    if item.Price > max then
+        return false
+    end
+
+    return true
+end
 
 ------------------------------------------------
 -- MUTATION FILTER
@@ -1542,10 +1572,11 @@ local function CheckItem(frame,booth)
         return
 
     end
-
-
-
-
+    
+    if not CheckPrice(item) 
+    then
+        return
+    end
 
 
 
