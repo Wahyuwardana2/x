@@ -93,7 +93,7 @@ Items = {
 
 Fish = {
 
-Enabled = true,
+Enabled = false,
 
 
 FilterName = true,
@@ -207,7 +207,7 @@ RAP = {
 
 Enabled = true,
 
-Percent = 1
+Percent = 12
 
 }
 
@@ -243,7 +243,7 @@ RAP = {
 
 Enabled = true,
 
-Percent = 1
+Percent = 11
 
 }
 
