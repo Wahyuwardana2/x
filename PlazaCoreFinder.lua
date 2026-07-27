@@ -76,7 +76,7 @@ Debug = true,
 
 LoadDelay = 5,
 
-StayTime = 5,
+StayTime = 2,
 
 
 
@@ -101,7 +101,7 @@ FilterName = true,
 
 Names = {
 
-"Frostborn Shark"
+"Megalodon"
 
 },
 
@@ -109,18 +109,19 @@ Names = {
 Mutation = {
 
 Enabled = true,
-
 Blacklist = {
 
-""
+
+
 }
-
-
 
 },
 
-
-
+Price = {
+    Enabled = true,
+    Min = 1,
+    Max = 900
+},
 
 RAP = {
 
@@ -128,14 +129,7 @@ Enabled = false,
 
 Percent = 1
 
-},
-
-
-Price = {
-        Enabled = true,
-        Min = 10,
-        Max = 100
-},
+}
 
 
 },
@@ -166,17 +160,22 @@ Names = {
 Mutation = {
 
 Enabled = true,
-
 Blacklist = {
-
-    "ghost",
+"nill",
+"ghost",
 "stone",
 "albino",
 "sandy"
+
 }
 
 },
 
+Price = {
+    Enabled = false,
+    Min = 1,
+    Max = 100
+},
 
 RAP = {
 
@@ -204,27 +203,24 @@ Percent = 1
 Enabled = true,
 
 
-FilterName = true,
+FilterName = false,
 
 
-Names = {
-                "Blazing fire"
+Names = {},
+
+Price = {
+    Enabled = false,
+    Min = 1,
+    Max = 100
 },
-
 
 RAP = {
 
-Enabled = false,
+Enabled = true,
 
-Percent = 12
+Percent = 13
 
-},
-
-Price = {
-        Enabled = true,
-        Min = 1,
-        Max = 100
-},
+}
 
 
 },
@@ -241,7 +237,7 @@ Price = {
 Boats = {
 
 
-Enabled = true,
+Enabled = false,
 
 
 FilterName = true,
@@ -253,12 +249,17 @@ Names = {
 
 },
 
+Price = {
+    Enabled = false,
+    Min = 1,
+    Max = 100
+},
 
 RAP = {
 
 Enabled = true,
 
-Percent = 11
+Percent = 14
 
 }
 
@@ -284,6 +285,11 @@ FilterName = false,
 
 Names = {},
 
+Price = {
+    Enabled = true,
+    Min = 1,
+    Max = 100
+},
 
 RAP = {
 
@@ -315,6 +321,11 @@ FilterName = false,
 
 Names = {},
 
+Price = {
+    Enabled = true,
+    Min = 1,
+    Max = 100
+},
 
 RAP = {
 
@@ -346,6 +357,11 @@ FilterName = false,
 
 Names = {},
 
+Price = {
+    Enabled = true,
+    Min = 1,
+    Max = 100
+},
 
 RAP = {
 
@@ -375,13 +391,13 @@ Server = {
 AutoHop = true,
 
 
-MinPlayer = 7,
+MinPlayer = 1,
 
 
 MaxPlayer = 20,
 
 
-HopDelay = 3
+HopDelay = 1
 
 
 }
@@ -580,25 +596,27 @@ end
 ------------------------------------------------
 -- NAME FILTER
 ------------------------------------------------
-
-local function CheckNameFilter(name,list)
+local function CheckNameFilter(item,list)
 
 
     if #list == 0 then
-
         return true
-
     end
+
+
+    local name = item.BaseName ~= "" 
+        and item.BaseName 
+        or item.Name
+
+
+    name = Clean(name)
 
 
 
     for _,v in ipairs(list) do
 
 
-        if Clean(name)
-        ==
-        Clean(v)
-        then
+        if name == Clean(v) then
 
             return true
 
@@ -608,41 +626,11 @@ local function CheckNameFilter(name,list)
     end
 
 
-
     return false
 
 
 end
 
-
-
-------------------------------------------------
--- PRICE FILTER
-------------------------------------------------
-local function CheckPrice(item)
-    local category = GetCategory(item.ItemType)
-
-    if not category then
-        return true
-    end
-
-    if not category.Price or not category.Price.Enabled then
-        return true
-    end
-
-    local min = category.Price.Min or 0
-    local max = category.Price.Max or math.huge
-
-    if item.Price < min then
-        return false
-    end
-
-    if item.Price > max then
-        return false
-    end
-
-    return true
-end
 
 ------------------------------------------------
 -- MUTATION FILTER
@@ -700,7 +688,39 @@ end
 
 
 
+------------------------------------------------
+-- PRICE FILTER
+------------------------------------------------
 
+local function CheckPrice(item)
+
+    local category = GetCategory(item.ItemType)
+
+    if not category then
+        return true
+    end
+
+    local cfg = category.Price
+
+    if not cfg or not cfg.Enabled then
+        return true
+    end
+
+    local price = tonumber(item.Price) or 0
+
+    if cfg.Min and price < cfg.Min then
+        DebugPrint("[PRICE TOO LOW]", item.Name, price)
+        return false
+    end
+
+    if cfg.Max and price > cfg.Max then
+        DebugPrint("[PRICE TOO HIGH]", item.Name, price)
+        return false
+    end
+
+    return true
+
+end
 
 
 ------------------------------------------------
@@ -857,16 +877,16 @@ local function CheckCategory(item)
 
         if not CheckNameFilter(
 
-            item.Name,
+    item,
 
-            category.Names
+    category.Names
 
-        )
-        then
+)
+then
 
-            return false
+    return false
 
-        end
+end
 
 
     end
@@ -1559,34 +1579,26 @@ local function CheckItem(frame,booth)
 
 
     if category
-    and not CheckMutation(
+and not CheckMutation(
+    item.Mutation,
+    category.Mutation
+)
+then
+    return
+end
 
-        item.Mutation,
+if not CheckPrice(item) then
+    return
+end
 
-        category.Mutation
-
-    )
-    then
-
-        return
-
-    end
+if not CheckRAP(item)
+then
+    return
+end
 
 
 
 
-
-    if not CheckRAP(item)
-    then
-
-        return
-
-    end
-    
-    if not CheckPrice(item) 
-    then
-        return
-    end
 
 
 
