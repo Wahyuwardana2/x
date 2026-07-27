@@ -101,7 +101,7 @@ FilterName = true,
 
 Names = {
 
-"Megalodon"
+"Frostborn Shark"
 
 },
 
@@ -122,7 +122,7 @@ Blacklist = {
 Price = {
         Enabled = true,
         Min = 10,
-        Max = 555
+        Max = 100
 },
 
 
