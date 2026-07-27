@@ -93,7 +93,7 @@ Items = {
 
 Fish = {
 
-Enabled = false,
+Enabled = true,
 
 
 FilterName = true,
