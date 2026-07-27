@@ -158,9 +158,15 @@ Names = {
 
 Mutation = {
 
-Enabled = false,
+Enabled = true,
 
-Blacklist = {}
+Blacklist = {
+
+    "ghost",
+"stone",
+"albino",
+"sandy"
+}
 
 },
 
