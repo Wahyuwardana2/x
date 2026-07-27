@@ -112,18 +112,13 @@ Enabled = true,
 
 Blacklist = {
 
-
+""
 }
 
 
 
 },
 
-Price = {
-        Enabled = true,
-        Min = 10,
-        Max = 100
-},
 
 
 
@@ -133,7 +128,14 @@ Enabled = false,
 
 Percent = 1
 
-}
+},
+
+
+Price = {
+        Enabled = true,
+        Min = 10,
+        Max = 100
+},
 
 
 },
@@ -202,19 +204,27 @@ Percent = 1
 Enabled = true,
 
 
-FilterName = false,
+FilterName = true,
 
 
-Names = {},
+Names = {
+                "Blazing fire"
+},
 
 
 RAP = {
 
-Enabled = true,
+Enabled = false,
 
 Percent = 12
 
-}
+},
+
+Price = {
+        Enabled = true,
+        Min = 1,
+        Max = 100
+},
 
 
 },
