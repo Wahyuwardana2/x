@@ -120,7 +120,7 @@ Blacklist = {
 Price = {
     Enabled = true,
     Min = 1,
-    Max = 900
+    Max = 400
 },
 
 RAP = {
