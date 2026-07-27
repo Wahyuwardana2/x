@@ -237,10 +237,10 @@ Percent = 13
 Boats = {
 
 
-Enabled = false,
+Enabled = true,
 
 
-FilterName = true,
+FilterName = false,
 
 
 Names = {
