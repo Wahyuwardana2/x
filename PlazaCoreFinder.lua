@@ -74,7 +74,7 @@ Debug = true,
 -- LOAD
 ------------------------------------------------
 
-LoadDelay = 8,
+LoadDelay = 5,
 
 StayTime = 5,
 
@@ -366,7 +366,7 @@ MinPlayer = 1,
 MaxPlayer = 20,
 
 
-HopDelay = 10
+HopDelay = 3
 
 
 }
