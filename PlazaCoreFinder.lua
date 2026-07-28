@@ -111,7 +111,7 @@ Mutation = {
 Enabled = true,
 Blacklist = {
 
-
+"Shiny"
 
 }
 
