@@ -228,9 +228,23 @@ Name = {
     Match = "Exact", -- Exact / Contains / StartsWith / EndsWith
 
     List = {
-    "galaxy conqueror"
 
-    }
+    "cinderflare",
+    "ducky paradise",
+    "eerie stormwake",
+    "featerfall",
+    "forsaken",
+    "lantern",
+    "pinata",
+    "candy cane rod",
+    "constellatio",
+    "blossom conqueror",
+    "galaxy conqueror",
+    "queen kraken",
+    "abyssfire",
+    "dark seahorse"
+
+}
 
 },
 
@@ -316,7 +330,23 @@ Name = {
 
     List = {
 
-    }
+    "dinky fishing boat",
+    "raft",
+    "coral boat",
+    "retro utility boat",
+    "banana pirate raft",
+    "classic ducky boat",
+    "santa sled",
+    "swan boat",
+    "pumpkin boat",
+    "christmas car",
+    "ancient ship",
+    "retro car boat",
+    "ferryman boat",
+    "superstar boat",
+    "undersea racer"
+
+}
 
 },
 
