@@ -59,7 +59,8 @@ Webhook = {
 
 
     Boats =
-    "https://discordapp.com/api/webhooks/1530613586525815027/osI8YKDYkl_bwCCVT4S6-W-bblZMZ9gTRLhVfLseGuxWIAwz2EN1vpNz1Jl1IisVlPDX"
+    "https://discordapp.com/api/webhooks/1530613586525815027/osI8YKDYkl_bwCCVT4S6-W-bblZMZ9gTRLhVfLseGuxWIAwz2EN1vpNz1Jl1IisVlPDX",
+    Pets = "https://discordapp.com/api/webhooks/1531668953816891493/myibJmPBQBA_0W3dICiFklJxX_h8ZUyawZVge1cZR9T2UlvLqgU1Mj7mK7e3VkZBL8Lx" 
 
 },
 ------------------------------------------------
@@ -96,12 +97,17 @@ Fish = {
 Enabled = true,
 
 
-FilterName = true,
+Name = {
 
+    Enabled = true,
 
-Names = {
+    Mode = "Whitelist", -- Whitelist / Blacklist
 
-"Megalodon"
+    Match = "Exact", -- Exact / Contains / StartsWith / EndsWith
+
+    List = {
+    "megalodon"
+    }
 
 },
 
@@ -109,7 +115,11 @@ Names = {
 Mutation = {
 
 Enabled = true,
-Blacklist = {
+Require = true,  -- true = wajib ada mutation, false = normal boleh
+
+Mode = "Blacklist",
+Match = "Exact",
+List = {
 
 "Shiny"
 
@@ -120,7 +130,7 @@ Blacklist = {
 Price = {
     Enabled = true,
     Min = 1,
-    Max = 401
+    Max = 400
 },
 
 RAP = {
@@ -147,21 +157,29 @@ Gears = {
 Enabled = true,
 
 
-FilterName = true,
+Name = {
 
+    Enabled = true,
 
-Names = {
+    Mode = "Whitelist", -- Whitelist / Blacklist
 
-"Withering Core"
+    Match = "Exact", -- Exact / Contains / StartsWith / EndsWith
+
+    List = {
+    "Withering Core"
+
+    }
 
 },
-
 
 Mutation = {
 
 Enabled = true,
-Blacklist = {
-"nill",
+Require = true, -- true = wajib ada mutation, false = normal boleh
+Mode = "Blacklist",
+Match = "Exact",
+List = {
+
 "ghost",
 "stone",
 "albino",
@@ -170,6 +188,7 @@ Blacklist = {
 }
 
 },
+
 
 Price = {
     Enabled = false,
@@ -190,9 +209,6 @@ Percent = 1
 
 
 
-
-
-
 ------------------------------------------------
 -- FISHING RODS
 ------------------------------------------------
@@ -203,10 +219,20 @@ Percent = 1
 Enabled = true,
 
 
-FilterName = false,
+Name = {
 
+    Enabled = true,
 
-Names = {},
+    Mode = "Blacklist", -- Whitelist / Blacklist
+
+    Match = "Exact", -- Exact / Contains / StartsWith / EndsWith
+
+    List = {
+    "galaxy conqueror"
+
+    }
+
+},
 
 Price = {
     Enabled = false,
@@ -226,26 +252,28 @@ Percent = 13
 },
 
 
-
-
-
-
 ------------------------------------------------
--- BOATS
+-- Pets
 ------------------------------------------------
 
-Boats = {
+["Pets"] = {
 
 
 Enabled = true,
 
 
-FilterName = false,
+Name = {
 
+    Enabled = false,
 
-Names = {
+    Mode = "Blacklist", -- Whitelist / Blacklist
 
-"Jetski"
+    Match = "Exact", -- Exact / Contains / StartsWith / EndsWith
+
+    List = {
+    "galaxy conqueror"
+
+    }
 
 },
 
@@ -259,7 +287,50 @@ RAP = {
 
 Enabled = true,
 
-Percent = 14
+Percent = 15
+
+}
+
+
+},
+
+
+
+
+------------------------------------------------
+-- BOATS
+------------------------------------------------
+
+Boats = {
+
+
+Enabled = true,
+
+Name = {
+
+    Enabled = true,
+
+    Mode = "Blacklist", -- Whitelist / Blacklist
+
+    Match = "Exact", -- Exact / Contains / StartsWith / EndsWith
+
+    List = {
+
+    }
+
+},
+
+Price = {
+    Enabled = false,
+    Min = 1,
+    Max = 100
+},
+
+RAP = {
+
+Enabled = true,
+
+Percent = 7
 
 }
 
@@ -279,11 +350,19 @@ Equipment = {
 
 Enabled = false,
 
+Name = {
 
-FilterName = false,
+    Enabled = true,
 
+    Mode = "Whitelist", -- Whitelist / Blacklist
 
-Names = {},
+    Match = "Exact", -- Exact / Contains / StartsWith / EndsWith
+
+    List = {
+
+    }
+
+},
 
 Price = {
     Enabled = true,
@@ -316,10 +395,19 @@ Trophies = {
 Enabled = false,
 
 
-FilterName = false,
+Name = {
 
+    Enabled = true,
 
-Names = {},
+    Mode = "Whitelist", -- Whitelist / Blacklist
+
+    Match = "Exact", -- Exact / Contains / StartsWith / EndsWith
+
+    List = {
+
+    }
+
+},
 
 Price = {
     Enabled = true,
@@ -352,10 +440,19 @@ Percent = 1
 Enabled = false,
 
 
-FilterName = false,
+Name = {
 
+    Enabled = true,
 
-Names = {},
+    Mode = "Whitelist", -- Whitelist / Blacklist
+
+    Match = "Exact", -- Exact / Contains / StartsWith / EndsWith
+
+    List = {
+
+    }
+
+},
 
 Price = {
     Enabled = true,
@@ -511,16 +608,16 @@ end
 
 
 
-
-
 ------------------------------------------------
--- GET RAP
+-- GET RAP FINAL ID BASED
 ------------------------------------------------
 
-local function GetRAP(itemType,itemName)
+local function GetRAP(itemType,itemName,item)
 
 
     if not RAPController then
+
+        print("[RAP] CONTROLLER NIL")
 
         return nil
 
@@ -528,16 +625,61 @@ local function GetRAP(itemType,itemName)
 
 
 
-    local success,result =
+    local ok,rap =
     pcall(function()
 
 
+
+        ----------------------------------------
+        -- PET FINAL FIX
+        ----------------------------------------
+
+        if itemType == "Pets"
+        and item.ItemId
+        then
+
+            return RAPController:GetRAP(
+                "Pets",
+                item.ItemId
+            )
+
+        end
+
+
+
+        ----------------------------------------
+        -- TRY ITEM ID FIRST
+        ----------------------------------------
+
+        if item.ItemId then
+
+            local result =
+            RAPController:GetRAP(
+                itemType,
+                item.ItemId
+            )
+
+
+            if result then
+
+                return result
+
+            end
+
+        end
+
+
+
+        ----------------------------------------
+        -- FALLBACK NAME
+        ----------------------------------------
+
         return RAPController:GetRAP(
-
             itemType,
-
-            CleanRAPName(itemName)
-
+            CleanRAPName(
+                item.BaseName
+                or itemName
+            )
         )
 
 
@@ -545,37 +687,29 @@ local function GetRAP(itemType,itemName)
 
 
 
-    if success then
+    print(
+        "[RAP FINAL]",
+        itemType,
+        itemName,
+        item.ItemId,
+        ok,
+        rap
+    )
 
-        return result
+
+
+    if ok then
+
+        return rap
 
     end
 
-
-
-    DebugPrint(
-
-        "[RAP ERROR]",
-
-        itemType,
-
-        itemName,
-
-        result
-
-    )
 
 
     return nil
 
 
 end
-
-
-
-
-
-
 ------------------------------------------------
 -- GET CATEGORY
 ------------------------------------------------
@@ -596,47 +730,7 @@ end
 ------------------------------------------------
 -- NAME FILTER
 ------------------------------------------------
-local function CheckNameFilter(item,list)
-
-
-    if #list == 0 then
-        return true
-    end
-
-
-    local name = item.BaseName ~= "" 
-        and item.BaseName 
-        or item.Name
-
-
-    name = Clean(name)
-
-
-
-    for _,v in ipairs(list) do
-
-
-        if name == Clean(v) then
-
-            return true
-
-        end
-
-
-    end
-
-
-    return false
-
-
-end
-
-
-------------------------------------------------
--- MUTATION FILTER
-------------------------------------------------
-
-local function CheckMutation(mutation,cfg)
+local function CheckFilter(value,cfg)
 
 
     if not cfg
@@ -649,13 +743,104 @@ local function CheckMutation(mutation,cfg)
 
 
 
-    mutation =
-    Clean(mutation)
+    if #(cfg.List or {}) == 0 then
+
+        return true
+
+    end
 
 
 
-    if mutation == ""
-    or mutation == "normal"
+    value =
+    Clean(value)
+
+
+
+    local found=false
+
+
+
+    for _,v in ipairs(cfg.List) do
+
+
+        local text =
+        Clean(v)
+
+
+
+        if cfg.Match=="Exact" then
+
+            found =
+            value == text
+
+
+        elseif cfg.Match=="Contains" then
+
+            found =
+            value:find(text,1,true)
+            ~=nil
+
+
+        elseif cfg.Match=="StartsWith" then
+
+            found =
+            value:sub(1,#text)==text
+
+
+        elseif cfg.Match=="EndsWith" then
+
+            found =
+            value:sub(-#text)==text
+
+
+        end
+
+
+
+        if found then
+            break
+        end
+
+
+    end
+
+
+
+    if cfg.Mode=="Blacklist" then
+
+        return not found
+
+    end
+
+
+
+    return found
+
+
+end
+------------------------------------------------
+-- MUTATION FILTER
+------------------------------------------------
+local function CheckMutation(mutation,cfg)
+
+    if not cfg
+    or not cfg.Enabled
+    then
+        return true
+    end
+
+
+    mutation = Clean(mutation)
+
+
+
+    -- wajib mutation
+    if cfg.Require
+    and (
+        mutation == ""
+        or mutation == "normal"
+        or mutation == "nill"
+    )
     then
 
         return false
@@ -664,15 +849,34 @@ local function CheckMutation(mutation,cfg)
 
 
 
-    for _,bad in ipairs(cfg.Blacklist) do
+    for _,bad in ipairs(cfg.List or {}) do
 
 
-        if mutation:find(
-            Clean(bad)
-        )
-        then
+        if cfg.Match == "Exact" then
 
-            return false
+            if mutation == Clean(bad) then
+
+                if cfg.Mode == "Blacklist" then
+                    return false
+                end
+
+            end
+
+
+        elseif cfg.Match == "Contains" then
+
+            if mutation:find(
+                Clean(bad),
+                1,
+                true
+            )
+            then
+
+                if cfg.Mode == "Blacklist" then
+                    return false
+                end
+
+            end
 
         end
 
@@ -683,11 +887,7 @@ local function CheckMutation(mutation,cfg)
 
     return true
 
-
 end
-
-
-
 ------------------------------------------------
 -- PRICE FILTER
 ------------------------------------------------
@@ -755,11 +955,32 @@ local function CheckRAP(item)
 
 
 
-    local rap =
-    GetRAP(
-        item.ItemType,
-        item.Name
-    )
+    print(
+    "[RAP TRY]",
+    item.ItemType,
+    "Display:",
+    item.Name,
+    "Base:",
+    item.BaseName,
+    "Raw:",
+    item.RawName,
+    "ID:",
+    item.ItemId
+)
+
+
+local rap =
+GetRAP(
+    item.ItemType,
+    item.Name,
+    item
+)
+
+
+print(
+    "[RAP RESULT]",
+    rap
+)
 
 
 
@@ -839,14 +1060,11 @@ end
 ------------------------------------------------
 -- CATEGORY FILTER
 ------------------------------------------------
-
 local function CheckCategory(item)
 
 
     local category =
-    GetCategory(
-        item.ItemType
-    )
+    GetCategory(item.ItemType)
 
 
 
@@ -871,23 +1089,86 @@ local function CheckCategory(item)
 
 
 
+    -----------------------------
+    -- NAME
+    -----------------------------
 
-    if category.FilterName then
+    if category.Name then
+
+
+        if not CheckFilter(
+            item.BaseName ~= "" and item.BaseName or item.Name,
+            category.Name
+        )
+        then
+
+            DebugPrint(
+                "[NAME FAIL]",
+                item.Name
+            )
+
+            return false
+
+        end
+
+    elseif category.FilterName then
 
 
         if not CheckNameFilter(
+            item,
+            category.Names
+        )
+        then
 
-    item,
+            DebugPrint(
+                "[NAME FAIL]",
+                item.Name
+            )
 
-    category.Names
+            return false
 
-)
-then
+        end
 
-    return false
 
-end
+    end
 
+
+
+    -----------------------------
+    -- VARIANT OPTIONAL
+    -----------------------------
+
+    if category.Variant then
+
+        if not CheckFilter(
+            item.Variant,
+            category.Variant
+        )
+        then
+
+            return false
+
+        end
+
+    end
+
+
+
+    -----------------------------
+    -- SIZE OPTIONAL
+    -----------------------------
+
+    if category.Size then
+
+        if not CheckFilter(
+            item.Size,
+            category.Size
+        )
+        then
+
+            return false
+
+        end
 
     end
 
@@ -897,9 +1178,6 @@ end
 
 
 end
-
-
-
 
 
 --================================================--
@@ -1376,7 +1654,42 @@ end
 
 
 
+------------------------------------------------
+-- GET ORIGINAL ITEM NAME
+------------------------------------------------
 
+local function GetOriginalName(itemType,itemId)
+
+
+    if not itemId then
+        return nil
+    end
+
+
+    local success,result =
+    pcall(function()
+
+
+        return RAPController:GetItemName(
+            itemType,
+            itemId
+        )
+        
+
+
+    end)
+
+
+    if success then
+
+        return result
+
+    end
+
+
+    return nil
+
+end
 
 
 
@@ -1445,10 +1758,8 @@ local function CheckItem(frame,booth)
 
 
 
-        ItemId =
-        frame:GetAttribute(
-            "ItemId"
-        ),
+        ItemId = frame:GetAttribute("ItemId"),
+        RawName = "",
 
 
 
@@ -1543,7 +1854,34 @@ local function CheckItem(frame,booth)
         inside
     )
 
+if item.ItemType == "Pets" then
 
+
+    local original =
+    GetOriginalName(
+        item.ItemType,
+        item.ItemId
+    )
+
+
+    if original then
+
+        item.RawName = original
+        print(
+    "[PET NAME DEBUG]",
+    item.Name,
+    item.ItemId,
+    item.RawName
+)
+
+    else
+
+        item.RawName = item.BaseName
+
+    end
+
+
+end
 
     item.Weight =
     GetWeight(
@@ -1578,13 +1916,21 @@ local function CheckItem(frame,booth)
 
 
 
-    if category
-and not CheckMutation(
-    item.Mutation,
-    category.Mutation
-)
-then
-    return
+    if category.Mutation then
+
+    if not CheckMutation(
+        item.Mutation,
+        category.Mutation
+    )
+    then
+        DebugPrint(
+            "[MUTATION FAIL]",
+            item.Name,
+            item.Mutation
+        )
+        return
+    end
+
 end
 
 if not CheckPrice(item) then
