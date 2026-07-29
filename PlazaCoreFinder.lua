@@ -130,7 +130,7 @@ List = {
 Price = {
     Enabled = true,
     Min = 1,
-    Max = 400
+    Max = 500
 },
 
 RAP = {
@@ -258,7 +258,7 @@ RAP = {
 
 Enabled = true,
 
-Percent = 13
+Percent = 7
 
 }
 
