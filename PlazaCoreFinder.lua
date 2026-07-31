@@ -515,7 +515,7 @@ Percent = 1
 Server = {
 
 
-AutoHop = false,
+AutoHop = true,
 
 
 MinPlayer = 1,
