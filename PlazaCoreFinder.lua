@@ -223,26 +223,27 @@ Name = {
 
     Enabled = true,
 
-    Mode = "Blacklist", -- Whitelist / Blacklist
+    Mode = "Whitelist", -- Whitelist / Blacklist
 
     Match = "Exact", -- Exact / Contains / StartsWith / EndsWith
 
     List = {
 
-    "cinderflare",
-    "ducky paradise",
-    "eerie stormwake",
-    "featerfall",
-    "forsaken",
-    "lantern",
-    "pinata",
-    "candy cane rod",
-    "constellatio",
-    "blossom conqueror",
-    "galaxy conqueror",
-    "queen kraken",
-    "abyssfire",
-    "dark seahorse"
+    "Spirit Staff"
+    -- "cinderflare",
+    -- "ducky paradise",
+    -- "eerie stormwake",
+    -- "featerfall",
+    -- "forsaken",
+    -- "lantern",
+    -- "pinata",
+    -- "candy cane rod",
+    -- "constellatio",
+    -- "blossom conqueror",
+    -- "galaxy conqueror",
+    -- "queen kraken",
+    -- "abyssfire",
+    -- "dark seahorse"
 
 }
 
@@ -258,7 +259,7 @@ RAP = {
 
 Enabled = true,
 
-Percent = 7
+Percent = 1
 
 }
 
