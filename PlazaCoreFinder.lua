@@ -302,7 +302,7 @@ RAP = {
 
 Enabled = true,
 
-Percent = 15
+Percent = 4
 
 }
 
@@ -361,7 +361,7 @@ RAP = {
 
 Enabled = true,
 
-Percent = 7
+Percent = 5
 
 }
 
