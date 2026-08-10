@@ -130,7 +130,7 @@ List = {
 Price = {
     Enabled = true,
     Min = 1,
-    Max = 350
+    Max = 300
 },
 
 RAP = {
@@ -281,26 +281,26 @@ Name = {
 
     Enabled = false,
 
-    Mode = "Blacklist", -- Whitelist / Blacklist
+    Mode = "Whitelist", -- Whitelist / Blacklist
 
-    Match = "Exact", -- Exact / Contains / StartsWith / EndsWith
+    Match = "Contains", -- Exact / Contains / StartsWith / EndsWith
 
     List = {
-    "galaxy conqueror"
+    "Stellar Hedgehog"
 
     }
 
 },
 
 Price = {
-    Enabled = false,
+    Enabled = true,
     Min = 1,
-    Max = 100
+    Max = 300
 },
 
 RAP = {
 
-Enabled = true,
+Enabled = false,
 
 Percent = 4
 
