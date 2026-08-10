@@ -279,7 +279,7 @@ Enabled = true,
 
 Name = {
 
-    Enabled = false,
+    Enabled = true,
 
     Mode = "Whitelist", -- Whitelist / Blacklist
 
