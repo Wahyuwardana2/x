@@ -1,0 +1,527 @@
+--============================================================--
+-- ELEMENTAL WEATHER AUTO TELEPORT
+-- SERVER BROWSER / REPLION METHOD
+--============================================================--
+
+local Players = game:GetService("Players")
+local TeleportService = game:GetService("TeleportService")
+
+local player = Players.LocalPlayer
+local placeId = game.PlaceId
+
+--============================================================--
+-- CONFIG
+--============================================================--
+
+local CHECK_INTERVAL = 2
+
+local HEIGHT_OFFSET = 5
+
+local AUTO_TELEPORT = true
+
+--============================================================--
+-- TARGET EVENT
+--============================================================--
+
+local WeatherTargets = {
+
+    ["Blizzard Elemental Event"] = {
+        Name = "ES",
+        CFrame = CFrame.new(
+            -1096.22998,
+            138.323044,
+            5619.18994,
+            0.887095034,
+            7.43281419e-08,
+            -0.461586803,
+            -1.00332009e-07,
+            1,
+            -3.17944213e-08,
+            0.461586803,
+            7.45166062e-08,
+            0.887095034
+        )
+    },
+
+    ["Storm Elemental Event"] = {
+        Name = "PETIR",
+        CFrame = CFrame.new(
+            -794.318909,
+            101.366158,
+            5665.493164,
+            -0.992839456,
+            1.0252208e-08,
+            0.119456381,
+            6.01107208e-09,
+            1,
+            -3.58639625e-08,
+            -0.119456381,
+            -3.48890943e-08,
+            -0.992839456
+        )
+    },
+
+    ["Volcano Elemental Event"] = {
+        Name = "LAVA",
+        CFrame = CFrame.new(
+            -608.154785,
+            98.0565262,
+            5573.12061,
+            0.250306308,
+            -3.45411983e-08,
+            0.968166709,
+            -7.61222196e-09,
+            1,
+            3.76449485e-08,
+            -0.968166709,
+            -1.67926686e-08,
+            0.250306308
+        )
+    }
+
+}
+
+--============================================================--
+-- GET REPLION
+--============================================================--
+
+local function getServerBrowserReplion()
+
+    for _, v in pairs(getgc(true)) do
+
+        if typeof(v) == "table" then
+
+            if tostring(v) == "Replion<ServerBrowser>" then
+                return v
+            end
+
+        end
+
+    end
+
+    return nil
+end
+
+--============================================================--
+-- GUI
+--============================================================--
+
+local CoreGui = game:GetService("CoreGui")
+
+local old = CoreGui:FindFirstChild("ElementalWeatherGUI")
+
+if old then
+    old:Destroy()
+end
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "ElementalWeatherGUI"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = CoreGui
+
+--============================================================--
+-- MAIN FRAME
+--============================================================--
+
+local Frame = Instance.new("Frame")
+
+Frame.Size = UDim2.new(0, 280, 0, 330)
+Frame.Position = UDim2.new(0, 20, 0.5, -165)
+
+Frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
+Frame.BorderSizePixel = 0
+
+Frame.Parent = ScreenGui
+
+local Corner = Instance.new("UICorner")
+Corner.CornerRadius = UDim.new(0,10)
+Corner.Parent = Frame
+
+--============================================================--
+-- TITLE
+--============================================================--
+
+local Title = Instance.new("TextLabel")
+
+Title.Size = UDim2.new(1, -45, 0, 35)
+Title.Position = UDim2.new(0,10,0,0)
+
+Title.BackgroundTransparency = 1
+
+Title.Text = "ELEMENTAL WEATHER"
+Title.TextColor3 = Color3.fromRGB(255,255,255)
+Title.TextSize = 17
+Title.Font = Enum.Font.GothamBold
+
+Title.TextXAlignment = Enum.TextXAlignment.Left
+
+Title.Parent = Frame
+
+--============================================================--
+-- MINIMIZE BUTTON
+--============================================================--
+
+local Minimize = Instance.new("TextButton")
+
+Minimize.Size = UDim2.new(0,30,0,30)
+Minimize.Position = UDim2.new(1,-35,0,3)
+
+Minimize.BackgroundColor3 = Color3.fromRGB(45,45,45)
+
+Minimize.Text = "-"
+Minimize.TextColor3 = Color3.fromRGB(255,255,255)
+
+Minimize.TextSize = 20
+Minimize.Font = Enum.Font.GothamBold
+
+Minimize.Parent = Frame
+
+local MinCorner = Instance.new("UICorner")
+MinCorner.CornerRadius = UDim.new(0,7)
+MinCorner.Parent = Minimize
+
+--============================================================--
+-- STATUS
+--============================================================--
+
+local Status = Instance.new("TextLabel")
+
+Status.Size = UDim2.new(1,-20,0,30)
+Status.Position = UDim2.new(0,10,0,40)
+
+Status.BackgroundColor3 = Color3.fromRGB(40,40,40)
+
+Status.Text = "CHECKING..."
+Status.TextColor3 = Color3.fromRGB(255,220,100)
+
+Status.TextSize = 14
+Status.Font = Enum.Font.GothamBold
+
+Status.Parent = Frame
+
+local StatusCorner = Instance.new("UICorner")
+StatusCorner.CornerRadius = UDim.new(0,7)
+StatusCorner.Parent = Status
+
+--============================================================--
+-- AUTO TP BUTTON
+--============================================================--
+
+local AutoButton = Instance.new("TextButton")
+
+AutoButton.Size = UDim2.new(1,-20,0,35)
+AutoButton.Position = UDim2.new(0,10,0,78)
+
+AutoButton.BackgroundColor3 = Color3.fromRGB(40,120,60)
+
+AutoButton.Text = "AUTO TP : ON"
+
+AutoButton.TextColor3 = Color3.fromRGB(255,255,255)
+AutoButton.TextSize = 14
+AutoButton.Font = Enum.Font.GothamBold
+
+AutoButton.Parent = Frame
+
+local AutoCorner = Instance.new("UICorner")
+AutoCorner.CornerRadius = UDim.new(0,7)
+AutoCorner.Parent = AutoButton
+
+--============================================================--
+-- EVENT HEADER
+--============================================================--
+
+local EventHeader = Instance.new("TextLabel")
+
+EventHeader.Size = UDim2.new(1,-20,0,25)
+EventHeader.Position = UDim2.new(0,10,0,120)
+
+EventHeader.BackgroundTransparency = 1
+
+EventHeader.Text = "CURRENT SERVER EVENTS"
+
+EventHeader.TextColor3 = Color3.fromRGB(255,255,255)
+
+EventHeader.TextSize = 13
+EventHeader.Font = Enum.Font.GothamBold
+
+EventHeader.TextXAlignment = Enum.TextXAlignment.Left
+
+EventHeader.Parent = Frame
+
+--============================================================--
+-- EVENT LOG
+--============================================================--
+
+local EventLog = Instance.new("TextLabel")
+
+EventLog.Size = UDim2.new(1,-20,0,175)
+EventLog.Position = UDim2.new(0,10,0,145)
+
+EventLog.BackgroundColor3 = Color3.fromRGB(35,35,35)
+
+EventLog.Text = "Waiting..."
+
+EventLog.TextColor3 = Color3.fromRGB(210,210,210)
+
+EventLog.TextSize = 13
+EventLog.Font = Enum.Font.Code
+
+EventLog.TextXAlignment = Enum.TextXAlignment.Left
+EventLog.TextYAlignment = Enum.TextYAlignment.Top
+
+EventLog.TextWrapped = false
+
+EventLog.Parent = Frame
+
+local LogCorner = Instance.new("UICorner")
+LogCorner.CornerRadius = UDim.new(0,7)
+LogCorner.Parent = EventLog
+
+--============================================================--
+-- MINIMIZE
+--============================================================--
+
+local minimized = false
+
+Minimize.MouseButton1Click:Connect(function()
+
+    minimized = not minimized
+
+    if minimized then
+
+        Frame.Size = UDim2.new(0,280,0,40)
+
+        Minimize.Text = "+"
+
+        Status.Visible = false
+        AutoButton.Visible = false
+        EventHeader.Visible = false
+        EventLog.Visible = false
+
+    else
+
+        Frame.Size = UDim2.new(0,280,0,330)
+
+        Minimize.Text = "-"
+
+        Status.Visible = true
+        AutoButton.Visible = true
+        EventHeader.Visible = true
+        EventLog.Visible = true
+
+    end
+
+end)
+
+--============================================================--
+-- AUTO TP TOGGLE
+--============================================================--
+
+AutoButton.MouseButton1Click:Connect(function()
+
+    AUTO_TELEPORT = not AUTO_TELEPORT
+
+    if AUTO_TELEPORT then
+
+        AutoButton.Text = "AUTO TP : ON"
+        AutoButton.BackgroundColor3 = Color3.fromRGB(40,120,60)
+
+    else
+
+        AutoButton.Text = "AUTO TP : OFF"
+        AutoButton.BackgroundColor3 = Color3.fromRGB(120,45,45)
+
+    end
+
+end)
+
+--============================================================--
+-- TELEPORT
+--============================================================--
+
+local lastTeleportEvent = nil
+
+local function teleportToWeather(eventName)
+
+    local target = WeatherTargets[eventName]
+
+    if not target then
+        return
+    end
+
+    local character = player.Character
+
+    if not character then
+        return
+    end
+
+    local root = character:FindFirstChild("HumanoidRootPart")
+
+    if not root then
+        return
+    end
+
+    print("========================================")
+    print("ELEMENTAL WEATHER DETECTED")
+    print("EVENT:", eventName)
+    print("TELEPORT:", target.Name)
+    print("========================================")
+
+    root.CFrame =
+        target.CFrame +
+        Vector3.new(0, HEIGHT_OFFSET, 0)
+
+end
+
+--============================================================--
+-- CHECK CURRENT SERVER
+--============================================================--
+
+local function checkCurrentServer()
+
+    local replion = getServerBrowserReplion()
+
+    if not replion then
+
+        Status.Text = "REPLION NOT FOUND"
+        Status.TextColor3 = Color3.fromRGB(255,80,80)
+
+        return nil
+
+    end
+
+    local data = replion.Data
+
+    if not data then
+        return nil
+    end
+
+    local servers = data.Servers
+
+    if not servers then
+
+        Status.Text = "SERVERS NIL"
+        Status.TextColor3 = Color3.fromRGB(255,80,80)
+
+        return nil
+
+    end
+
+    for _, server in pairs(servers) do
+
+        if server.JobId == game.JobId then
+
+            local events = server.Events
+
+            local eventText = ""
+
+            local detectedEvent = nil
+
+            if events then
+
+                for _, event in pairs(events) do
+
+                    event = tostring(event)
+
+                    eventText =
+                        eventText ..
+                        "• " ..
+                        event ..
+                        "\n"
+
+                    if WeatherTargets[event] then
+                        detectedEvent = event
+                    end
+
+                end
+
+            end
+
+            if eventText == "" then
+                eventText = "• NONE"
+            end
+
+            EventLog.Text = eventText
+
+            if detectedEvent then
+
+                Status.Text =
+                    "ACTIVE : " ..
+                    WeatherTargets[detectedEvent].Name
+
+                Status.TextColor3 =
+                    Color3.fromRGB(80,255,140)
+
+                if AUTO_TELEPORT then
+
+                    if lastTeleportEvent ~= detectedEvent then
+
+                        lastTeleportEvent = detectedEvent
+
+                        teleportToWeather(detectedEvent)
+
+                    end
+
+                end
+
+            else
+
+                Status.Text = "NO TARGET WEATHER"
+
+                Status.TextColor3 =
+                    Color3.fromRGB(255,200,80)
+
+                lastTeleportEvent = nil
+
+            end
+
+            return server
+        end
+
+    end
+
+    Status.Text = "CURRENT SERVER NOT FOUND"
+
+    Status.TextColor3 =
+        Color3.fromRGB(255,80,80)
+
+    return nil
+end
+
+--============================================================--
+-- REALTIME LOOP
+--============================================================--
+
+task.spawn(function()
+
+    while task.wait(CHECK_INTERVAL) do
+
+        pcall(function()
+
+            checkCurrentServer()
+
+        end)
+
+    end
+
+end)
+
+--============================================================--
+-- INITIAL CHECK
+--============================================================--
+
+task.spawn(function()
+
+    task.wait(1)
+
+    pcall(function()
+        checkCurrentServer()
+    end)
+
+end)
+
+print("========================================")
+print("ELEMENTAL WEATHER AUTO TP")
+print("REALTIME SERVER CHECK ENABLED")
+print("CHECK INTERVAL:", CHECK_INTERVAL)
+print("========================================")
