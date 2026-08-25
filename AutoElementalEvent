@@ -1,97 +1,124 @@
 --============================================================--
--- ELEMENTAL WEATHER AUTO TELEPORT
--- SERVER BROWSER / REPLION METHOD
+-- AUTO WEATHER TELEPORT
+-- CURRENT SERVER EVENT CHECK
+-- NO SERVER HOP
 --============================================================--
 
 local Players = game:GetService("Players")
-local TeleportService = game:GetService("TeleportService")
 
 local player = Players.LocalPlayer
-local placeId = game.PlaceId
 
 --============================================================--
 -- CONFIG
 --============================================================--
 
 local CHECK_INTERVAL = 2
-
 local HEIGHT_OFFSET = 5
 
-local AUTO_TELEPORT = true
-
 --============================================================--
--- TARGET EVENT
+-- WEATHER LOCATIONS
 --============================================================--
 
-local WeatherTargets = {
+local Locations = {
 
-    ["Blizzard Elemental Event"] = {
-        Name = "ES",
-        CFrame = CFrame.new(
-            -1096.22998,
-            138.323044,
-            5619.18994,
-            0.887095034,
-            7.43281419e-08,
-            -0.461586803,
-            -1.00332009e-07,
-            1,
-            -3.17944213e-08,
-            0.461586803,
-            7.45166062e-08,
-            0.887095034
-        )
-    },
+    ["Storm"] = CFrame.new(
+        -794.318909,
+        101.366158,
+        5665.493164,
+        -0.992839456,
+        1.0252208e-08,
+        0.119456381,
+        6.01107208e-09,
+        1,
+        -3.58639625e-08,
+        -0.119456381,
+        -3.48890943e-08,
+        -0.992839456
+    ),
 
-    ["Storm Elemental Event"] = {
-        Name = "PETIR",
-        CFrame = CFrame.new(
-            -794.318909,
-            101.366158,
-            5665.493164,
-            -0.992839456,
-            1.0252208e-08,
-            0.119456381,
-            6.01107208e-09,
-            1,
-            -3.58639625e-08,
-            -0.119456381,
-            -3.48890943e-08,
-            -0.992839456
-        )
-    },
+    ["Blizzard"] = CFrame.new(
+        -1096.22998,
+        138.323044,
+        5619.18994,
+        0.887095034,
+        7.43281419e-08,
+        -0.461586803,
+        -1.00332009e-07,
+        1,
+        -3.17944213e-08,
+        0.461586803,
+        7.45166062e-08,
+        0.887095034
+    ),
 
-    ["Volcano Elemental Event"] = {
-        Name = "LAVA",
-        CFrame = CFrame.new(
-            -608.154785,
-            98.0565262,
-            5573.12061,
-            0.250306308,
-            -3.45411983e-08,
-            0.968166709,
-            -7.61222196e-09,
-            1,
-            3.76449485e-08,
-            -0.968166709,
-            -1.67926686e-08,
-            0.250306308
-        )
-    }
-
+    ["Volcano"] = CFrame.new(
+        -608.154785,
+        98.0565262,
+        5573.12061,
+        0.250306308,
+        -3.45411983e-08,
+        0.968166709,
+        -7.61222196e-09,
+        1,
+        3.76449485e-08,
+        -0.968166709,
+        -1.67926686e-08,
+        0.250306308
+    )
 }
 
 --============================================================--
--- GET REPLION
+-- TARGET EVENT NAMES
+--============================================================--
+
+local WeatherNames = {
+    Storm = {
+        "storm"
+    },
+
+    Blizzard = {
+        "blizzard"
+    },
+
+    Volcano = {
+        "volcano"
+    }
+}
+
+--============================================================--
+-- STATE
+--============================================================--
+
+local AutoTeleport = true
+
+local SavedLocation = nil
+
+local LastWeather = nil
+
+local TeleportedWeather = nil
+
+local Returning = false
+
+--============================================================--
+-- REPLION SERVER BROWSER
 --============================================================--
 
 local function getServerBrowserReplion()
+
+    if not getgc then
+        warn("getgc tidak tersedia.")
+        return nil
+    end
 
     for _, v in pairs(getgc(true)) do
 
         if typeof(v) == "table" then
 
-            if tostring(v) == "Replion<ServerBrowser>" then
+            local ok, text = pcall(function()
+                return tostring(v)
+            end)
+
+            if ok and text == "Replion<ServerBrowser>" then
                 return v
             end
 
@@ -103,19 +130,217 @@ local function getServerBrowserReplion()
 end
 
 --============================================================--
+-- EVENT MATCH
+--============================================================--
+
+local function matchWeather(eventName)
+
+    if typeof(eventName) ~= "string" then
+        return nil
+    end
+
+    local lower = string.lower(eventName)
+
+    for weather, names in pairs(WeatherNames) do
+
+        for _, keyword in ipairs(names) do
+
+            if string.find(lower, keyword, 1, true) then
+                return weather
+            end
+
+        end
+
+    end
+
+    return nil
+end
+
+--============================================================--
+-- GET CURRENT SERVER
+--============================================================--
+
+local function getCurrentServer()
+
+    local replion = getServerBrowserReplion()
+
+    if not replion then
+        return nil
+    end
+
+    if not replion.Data then
+        return nil
+    end
+
+    if not replion.Data.Servers then
+        return nil
+    end
+
+    for _, server in pairs(replion.Data.Servers) do
+
+        if server.JobId == game.JobId then
+            return server
+        end
+
+    end
+
+    return nil
+end
+
+--============================================================--
+-- CHECK CURRENT WEATHER
+--============================================================--
+
+local function checkCurrentWeather()
+
+    local server = getCurrentServer()
+
+    if not server then
+        return nil, {}
+    end
+
+    local activeEvents = {}
+
+    if server.Events then
+
+        for _, event in pairs(server.Events) do
+
+            if typeof(event) == "string" then
+
+                table.insert(activeEvents, event)
+
+            end
+
+        end
+
+    end
+
+    -- Cari weather target
+    for _, eventName in ipairs(activeEvents) do
+
+        local weather = matchWeather(eventName)
+
+        if weather then
+            return weather, activeEvents
+        end
+
+    end
+
+    return nil, activeEvents
+end
+
+--============================================================--
+-- CHARACTER
+--============================================================--
+
+local function getRoot()
+
+    local character = player.Character
+
+    if not character then
+        return nil
+    end
+
+    return character:FindFirstChild("HumanoidRootPart")
+end
+
+--============================================================--
+-- SAVE LOCATION
+--============================================================--
+
+local function saveLocation()
+
+    local root = getRoot()
+
+    if not root then
+        return false
+    end
+
+    SavedLocation = root.CFrame
+
+    print("========================================")
+    print("LOCATION SAVED")
+    print("POSITION:", root.Position)
+    print("========================================")
+
+    return true
+end
+
+--============================================================--
+-- RETURN LOCATION
+--============================================================--
+
+local function returnLocation()
+
+    if not SavedLocation then
+        print("[RETURN] Belum ada lokasi yang disimpan.")
+        return false
+    end
+
+    local root = getRoot()
+
+    if not root then
+        return false
+    end
+
+    Returning = true
+
+    root.CFrame = SavedLocation
+
+    task.wait(0.15)
+
+    Returning = false
+
+    print("========================================")
+    print("RETURNED TO SAVED LOCATION")
+    print("========================================")
+
+    return true
+end
+
+--============================================================--
+-- TELEPORT WEATHER
+--============================================================--
+
+local function teleportWeather(weather)
+
+    local target = Locations[weather]
+
+    if not target then
+        return
+    end
+
+    local root = getRoot()
+
+    if not root then
+        return
+    end
+
+    local targetCFrame =
+        target + Vector3.new(0, HEIGHT_OFFSET, 0)
+
+    root.CFrame = targetCFrame
+
+    print("========================================")
+    print("WEATHER TELEPORT")
+    print("WEATHER:", weather)
+    print("========================================")
+end
+
+--============================================================--
 -- GUI
 --============================================================--
 
 local CoreGui = game:GetService("CoreGui")
 
-local old = CoreGui:FindFirstChild("ElementalWeatherGUI")
+local old = CoreGui:FindFirstChild("WeatherTeleportGUI")
 
 if old then
     old:Destroy()
 end
 
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "ElementalWeatherGUI"
+ScreenGui.Name = "WeatherTeleportGUI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = CoreGui
 
@@ -124,17 +349,14 @@ ScreenGui.Parent = CoreGui
 --============================================================--
 
 local Frame = Instance.new("Frame")
-
-Frame.Size = UDim2.new(0, 280, 0, 330)
+Frame.Size = UDim2.new(0, 300, 0, 330)
 Frame.Position = UDim2.new(0, 20, 0.5, -165)
-
-Frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
+Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 Frame.BorderSizePixel = 0
-
 Frame.Parent = ScreenGui
 
 local Corner = Instance.new("UICorner")
-Corner.CornerRadius = UDim.new(0,10)
+Corner.CornerRadius = UDim.new(0, 10)
 Corner.Parent = Frame
 
 --============================================================--
@@ -142,386 +364,363 @@ Corner.Parent = Frame
 --============================================================--
 
 local Title = Instance.new("TextLabel")
-
-Title.Size = UDim2.new(1, -45, 0, 35)
-Title.Position = UDim2.new(0,10,0,0)
-
+Title.Size = UDim2.new(1, -80, 0, 35)
+Title.Position = UDim2.new(0, 10, 0, 0)
 Title.BackgroundTransparency = 1
-
-Title.Text = "ELEMENTAL WEATHER"
-Title.TextColor3 = Color3.fromRGB(255,255,255)
+Title.Text = "WEATHER TELEPORT"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.TextSize = 17
 Title.Font = Enum.Font.GothamBold
-
 Title.TextXAlignment = Enum.TextXAlignment.Left
-
 Title.Parent = Frame
 
 --============================================================--
--- MINIMIZE BUTTON
+-- MINIMIZE
 --============================================================--
 
-local Minimize = Instance.new("TextButton")
-
-Minimize.Size = UDim2.new(0,30,0,30)
-Minimize.Position = UDim2.new(1,-35,0,3)
-
-Minimize.BackgroundColor3 = Color3.fromRGB(45,45,45)
-
-Minimize.Text = "-"
-Minimize.TextColor3 = Color3.fromRGB(255,255,255)
-
-Minimize.TextSize = 20
-Minimize.Font = Enum.Font.GothamBold
-
-Minimize.Parent = Frame
+local MinButton = Instance.new("TextButton")
+MinButton.Size = UDim2.new(0, 35, 0, 30)
+MinButton.Position = UDim2.new(1, -75, 0, 3)
+MinButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+MinButton.Text = "-"
+MinButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinButton.TextSize = 20
+MinButton.Font = Enum.Font.GothamBold
+MinButton.Parent = Frame
 
 local MinCorner = Instance.new("UICorner")
-MinCorner.CornerRadius = UDim.new(0,7)
-MinCorner.Parent = Minimize
+MinCorner.CornerRadius = UDim.new(0, 6)
+MinCorner.Parent = MinButton
+
+--============================================================--
+-- CLOSE
+--============================================================--
+
+local CloseButton = Instance.new("TextButton")
+CloseButton.Size = UDim2.new(0, 35, 0, 30)
+CloseButton.Position = UDim2.new(1, -38, 0, 3)
+CloseButton.BackgroundColor3 = Color3.fromRGB(120, 40, 40)
+CloseButton.Text = "X"
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.TextSize = 15
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.Parent = Frame
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 6)
+CloseCorner.Parent = CloseButton
+
+CloseButton.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
 
 --============================================================--
 -- STATUS
 --============================================================--
 
 local Status = Instance.new("TextLabel")
-
-Status.Size = UDim2.new(1,-20,0,30)
-Status.Position = UDim2.new(0,10,0,40)
-
-Status.BackgroundColor3 = Color3.fromRGB(40,40,40)
-
-Status.Text = "CHECKING..."
-Status.TextColor3 = Color3.fromRGB(255,220,100)
-
+Status.Size = UDim2.new(1, -20, 0, 30)
+Status.Position = UDim2.new(0, 10, 0, 40)
+Status.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+Status.Text = "WEATHER: CHECKING..."
+Status.TextColor3 = Color3.fromRGB(255, 255, 255)
 Status.TextSize = 14
 Status.Font = Enum.Font.GothamBold
-
 Status.Parent = Frame
 
 local StatusCorner = Instance.new("UICorner")
-StatusCorner.CornerRadius = UDim.new(0,7)
+StatusCorner.CornerRadius = UDim.new(0, 6)
 StatusCorner.Parent = Status
+
+--============================================================--
+-- SAVE BUTTON
+--============================================================--
+
+local SaveButton = Instance.new("TextButton")
+SaveButton.Size = UDim2.new(0.48, -5, 0, 38)
+SaveButton.Position = UDim2.new(0, 10, 0, 80)
+SaveButton.BackgroundColor3 = Color3.fromRGB(45, 90, 55)
+SaveButton.Text = "SAVE LOCATION"
+SaveButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+SaveButton.TextSize = 13
+SaveButton.Font = Enum.Font.GothamBold
+SaveButton.Parent = Frame
+
+local SaveCorner = Instance.new("UICorner")
+SaveCorner.CornerRadius = UDim.new(0, 7)
+SaveCorner.Parent = SaveButton
+
+SaveButton.MouseButton1Click:Connect(function()
+
+    if saveLocation() then
+        SaveButton.Text = "LOCATION SAVED"
+        task.wait(1)
+        SaveButton.Text = "SAVE LOCATION"
+    end
+
+end)
+
+--============================================================--
+-- RETURN BUTTON
+--============================================================--
+
+local ReturnButton = Instance.new("TextButton")
+ReturnButton.Size = UDim2.new(0.48, -5, 0, 38)
+ReturnButton.Position = UDim2.new(0.52, 0, 0, 80)
+ReturnButton.BackgroundColor3 = Color3.fromRGB(70, 70, 100)
+ReturnButton.Text = "RETURN"
+ReturnButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ReturnButton.TextSize = 13
+ReturnButton.Font = Enum.Font.GothamBold
+ReturnButton.Parent = Frame
+
+local ReturnCorner = Instance.new("UICorner")
+ReturnCorner.CornerRadius = UDim.new(0, 7)
+ReturnCorner.Parent = ReturnButton
+
+ReturnButton.MouseButton1Click:Connect(function()
+    returnLocation()
+end)
 
 --============================================================--
 -- AUTO TP BUTTON
 --============================================================--
 
 local AutoButton = Instance.new("TextButton")
-
-AutoButton.Size = UDim2.new(1,-20,0,35)
-AutoButton.Position = UDim2.new(0,10,0,78)
-
-AutoButton.BackgroundColor3 = Color3.fromRGB(40,120,60)
-
+AutoButton.Size = UDim2.new(1, -20, 0, 38)
+AutoButton.Position = UDim2.new(0, 10, 0, 125)
+AutoButton.BackgroundColor3 = Color3.fromRGB(45, 100, 55)
 AutoButton.Text = "AUTO TP : ON"
-
-AutoButton.TextColor3 = Color3.fromRGB(255,255,255)
+AutoButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 AutoButton.TextSize = 14
 AutoButton.Font = Enum.Font.GothamBold
-
 AutoButton.Parent = Frame
 
 local AutoCorner = Instance.new("UICorner")
-AutoCorner.CornerRadius = UDim.new(0,7)
+AutoCorner.CornerRadius = UDim.new(0, 7)
 AutoCorner.Parent = AutoButton
 
---============================================================--
--- EVENT HEADER
---============================================================--
+AutoButton.MouseButton1Click:Connect(function()
 
-local EventHeader = Instance.new("TextLabel")
+    AutoTeleport = not AutoTeleport
 
-EventHeader.Size = UDim2.new(1,-20,0,25)
-EventHeader.Position = UDim2.new(0,10,0,120)
+    if AutoTeleport then
+        AutoButton.Text = "AUTO TP : ON"
+        AutoButton.BackgroundColor3 = Color3.fromRGB(45, 100, 55)
+    else
+        AutoButton.Text = "AUTO TP : OFF"
+        AutoButton.BackgroundColor3 = Color3.fromRGB(100, 45, 45)
+    end
 
-EventHeader.BackgroundTransparency = 1
-
-EventHeader.Text = "CURRENT SERVER EVENTS"
-
-EventHeader.TextColor3 = Color3.fromRGB(255,255,255)
-
-EventHeader.TextSize = 13
-EventHeader.Font = Enum.Font.GothamBold
-
-EventHeader.TextXAlignment = Enum.TextXAlignment.Left
-
-EventHeader.Parent = Frame
+end)
 
 --============================================================--
 -- EVENT LOG
 --============================================================--
 
-local EventLog = Instance.new("TextLabel")
+local LogTitle = Instance.new("TextLabel")
+LogTitle.Size = UDim2.new(1, -20, 0, 25)
+LogTitle.Position = UDim2.new(0, 10, 0, 170)
+LogTitle.BackgroundTransparency = 1
+LogTitle.Text = "ACTIVE SERVER EVENTS"
+LogTitle.TextColor3 = Color3.fromRGB(220, 220, 220)
+LogTitle.TextSize = 13
+LogTitle.Font = Enum.Font.GothamBold
+LogTitle.TextXAlignment = Enum.TextXAlignment.Left
+LogTitle.Parent = Frame
 
-EventLog.Size = UDim2.new(1,-20,0,175)
-EventLog.Position = UDim2.new(0,10,0,145)
-
-EventLog.BackgroundColor3 = Color3.fromRGB(35,35,35)
-
-EventLog.Text = "Waiting..."
-
-EventLog.TextColor3 = Color3.fromRGB(210,210,210)
-
-EventLog.TextSize = 13
-EventLog.Font = Enum.Font.Code
-
-EventLog.TextXAlignment = Enum.TextXAlignment.Left
-EventLog.TextYAlignment = Enum.TextYAlignment.Top
-
-EventLog.TextWrapped = false
-
-EventLog.Parent = Frame
+local LogBox = Instance.new("TextLabel")
+LogBox.Size = UDim2.new(1, -20, 0, 115)
+LogBox.Position = UDim2.new(0, 10, 0, 200)
+LogBox.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+LogBox.BorderSizePixel = 0
+LogBox.Text = "Waiting for server data..."
+LogBox.TextColor3 = Color3.fromRGB(200, 200, 200)
+LogBox.TextSize = 12
+LogBox.Font = Enum.Font.Code
+LogBox.TextXAlignment = Enum.TextXAlignment.Left
+LogBox.TextYAlignment = Enum.TextYAlignment.Top
+LogBox.TextWrapped = false
+LogBox.Parent = Frame
 
 local LogCorner = Instance.new("UICorner")
-LogCorner.CornerRadius = UDim.new(0,7)
-LogCorner.Parent = EventLog
+LogCorner.CornerRadius = UDim.new(0, 6)
+LogCorner.Parent = LogBox
 
 --============================================================--
--- MINIMIZE
+-- MINIMIZE LOGIC
 --============================================================--
 
 local minimized = false
 
-Minimize.MouseButton1Click:Connect(function()
+MinButton.MouseButton1Click:Connect(function()
 
     minimized = not minimized
 
     if minimized then
 
-        Frame.Size = UDim2.new(0,280,0,40)
+        Frame.Size = UDim2.new(0, 300, 0, 40)
 
-        Minimize.Text = "+"
+        MinButton.Text = "+"
 
         Status.Visible = false
+        SaveButton.Visible = false
+        ReturnButton.Visible = false
         AutoButton.Visible = false
-        EventHeader.Visible = false
-        EventLog.Visible = false
+        LogTitle.Visible = false
+        LogBox.Visible = false
 
     else
 
-        Frame.Size = UDim2.new(0,280,0,330)
+        Frame.Size = UDim2.new(0, 300, 0, 330)
 
-        Minimize.Text = "-"
+        MinButton.Text = "-"
 
         Status.Visible = true
+        SaveButton.Visible = true
+        ReturnButton.Visible = true
         AutoButton.Visible = true
-        EventHeader.Visible = true
-        EventLog.Visible = true
+        LogTitle.Visible = true
+        LogBox.Visible = true
 
     end
 
 end)
 
 --============================================================--
--- AUTO TP TOGGLE
+-- UPDATE GUI
 --============================================================--
 
-AutoButton.MouseButton1Click:Connect(function()
+local function updateGUI(weather, events)
 
-    AUTO_TELEPORT = not AUTO_TELEPORT
+    if weather then
 
-    if AUTO_TELEPORT then
+        Status.Text = "WEATHER: " .. string.upper(weather)
 
-        AutoButton.Text = "AUTO TP : ON"
-        AutoButton.BackgroundColor3 = Color3.fromRGB(40,120,60)
+        Status.TextColor3 = Color3.fromRGB(
+            100,
+            255,
+            130
+        )
 
     else
 
-        AutoButton.Text = "AUTO TP : OFF"
-        AutoButton.BackgroundColor3 = Color3.fromRGB(120,45,45)
+        Status.Text = "WEATHER: NONE"
+
+        Status.TextColor3 = Color3.fromRGB(
+            255,
+            180,
+            100
+        )
 
     end
 
-end)
+    local lines = {}
 
---============================================================--
--- TELEPORT
---============================================================--
+    for i, event in ipairs(events) do
 
-local lastTeleportEvent = nil
+        table.insert(
+            lines,
+            "[" .. i .. "] " .. tostring(event)
+        )
 
-local function teleportToWeather(eventName)
-
-    local target = WeatherTargets[eventName]
-
-    if not target then
-        return
     end
 
-    local character = player.Character
-
-    if not character then
-        return
+    if #lines == 0 then
+        LogBox.Text = "NO EVENTS"
+    else
+        LogBox.Text = table.concat(lines, "\n")
     end
-
-    local root = character:FindFirstChild("HumanoidRootPart")
-
-    if not root then
-        return
-    end
-
-    print("========================================")
-    print("ELEMENTAL WEATHER DETECTED")
-    print("EVENT:", eventName)
-    print("TELEPORT:", target.Name)
-    print("========================================")
-
-    root.CFrame =
-        target.CFrame +
-        Vector3.new(0, HEIGHT_OFFSET, 0)
 
 end
 
 --============================================================--
--- CHECK CURRENT SERVER
+-- REALTIME WEATHER LOOP
 --============================================================--
 
-local function checkCurrentServer()
+task.spawn(function()
 
-    local replion = getServerBrowserReplion()
+    print("========================================")
+    print("AUTO WEATHER TELEPORT")
+    print("REALTIME CHECKER")
+    print("NO SERVER HOP")
+    print("========================================")
 
-    if not replion then
+    while task.wait(CHECK_INTERVAL) do
 
-        Status.Text = "REPLION NOT FOUND"
-        Status.TextColor3 = Color3.fromRGB(255,80,80)
+        if not ScreenGui.Parent then
+            break
+        end
 
-        return nil
+        local weather, events = checkCurrentWeather()
 
-    end
+        updateGUI(weather, events)
 
-    local data = replion.Data
+        --====================================================--
+        -- WEATHER ACTIVE
+        --====================================================--
 
-    if not data then
-        return nil
-    end
+        if AutoTeleport and weather then
 
-    local servers = data.Servers
+            if TeleportedWeather ~= weather then
 
-    if not servers then
-
-        Status.Text = "SERVERS NIL"
-        Status.TextColor3 = Color3.fromRGB(255,80,80)
-
-        return nil
-
-    end
-
-    for _, server in pairs(servers) do
-
-        if server.JobId == game.JobId then
-
-            local events = server.Events
-
-            local eventText = ""
-
-            local detectedEvent = nil
-
-            if events then
-
-                for _, event in pairs(events) do
-
-                    event = tostring(event)
-
-                    eventText =
-                        eventText ..
-                        "• " ..
-                        event ..
-                        "\n"
-
-                    if WeatherTargets[event] then
-                        detectedEvent = event
-                    end
-
+                -- Kalau belum pernah save,
+                -- simpan posisi sebelum teleport.
+                if not SavedLocation then
+                    saveLocation()
                 end
 
-            end
+                teleportWeather(weather)
 
-            if eventText == "" then
-                eventText = "• NONE"
-            end
-
-            EventLog.Text = eventText
-
-            if detectedEvent then
-
-                Status.Text =
-                    "ACTIVE : " ..
-                    WeatherTargets[detectedEvent].Name
-
-                Status.TextColor3 =
-                    Color3.fromRGB(80,255,140)
-
-                if AUTO_TELEPORT then
-
-                    if lastTeleportEvent ~= detectedEvent then
-
-                        lastTeleportEvent = detectedEvent
-
-                        teleportToWeather(detectedEvent)
-
-                    end
-
-                end
-
-            else
-
-                Status.Text = "NO TARGET WEATHER"
-
-                Status.TextColor3 =
-                    Color3.fromRGB(255,200,80)
-
-                lastTeleportEvent = nil
+                TeleportedWeather = weather
+                LastWeather = weather
 
             end
 
-            return server
+        --====================================================--
+        -- WEATHER NONE
+        --====================================================--
+
+        elseif not weather then
+
+            if TeleportedWeather ~= nil then
+
+                print("========================================")
+                print("WEATHER ENDED")
+                print("RETURNING TO SAVED LOCATION")
+                print("========================================")
+
+                returnLocation()
+
+                TeleportedWeather = nil
+                LastWeather = nil
+
+            end
+
         end
 
     end
 
-    Status.Text = "CURRENT SERVER NOT FOUND"
-
-    Status.TextColor3 =
-        Color3.fromRGB(255,80,80)
-
-    return nil
-end
-
---============================================================--
--- REALTIME LOOP
---============================================================--
-
-task.spawn(function()
-
-    while task.wait(CHECK_INTERVAL) do
-
-        pcall(function()
-
-            checkCurrentServer()
-
-        end)
-
-    end
-
 end)
 
 --============================================================--
--- INITIAL CHECK
+-- CHARACTER RESPAWN
 --============================================================--
 
-task.spawn(function()
+player.CharacterAdded:Connect(function()
 
     task.wait(1)
 
-    pcall(function()
-        checkCurrentServer()
-    end)
+    -- Jangan langsung teleport.
+    -- Checker realtime akan menentukan
+    -- apakah weather masih aktif.
+
+    TeleportedWeather = nil
 
 end)
 
 print("========================================")
-print("ELEMENTAL WEATHER AUTO TP")
-print("REALTIME SERVER CHECK ENABLED")
+print("WEATHER TELEPORT LOADED")
 print("CHECK INTERVAL:", CHECK_INTERVAL)
+print("AUTO TP:", AutoTeleport)
 print("========================================")
