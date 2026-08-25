@@ -281,7 +281,7 @@ Enabled = true,
 
 Name = {
 
-    Enabled = true,
+    Enabled = false,
 
     Mode = "Whitelist", -- Whitelist / Blacklist
 
@@ -295,16 +295,16 @@ Name = {
 },
 
 Price = {
-    Enabled = true,
+    Enabled = false,
     Min = 1,
     Max = 300
 },
 
 RAP = {
 
-Enabled = false,
+Enabled = true,
 
-Percent = 4
+Percent = 14
 
 }
 
