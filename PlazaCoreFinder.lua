@@ -300,6 +300,7 @@ Name = {
     "abyssfire",
     "soulreaver",
     "pirate octopus",
+    "crowned Hacker",
     "blazing fire",
     "dark seahorse"
 
