@@ -191,7 +191,7 @@ List = {
 
 
 Price = {
-    Enabled = false,
+    Enabled = true,
     Min = 1,
     Max = 26
 },
