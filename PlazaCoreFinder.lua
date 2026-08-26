@@ -132,7 +132,7 @@ List = {
 Price = {
     Enabled = true,
     Min = 1,
-    Max = 300
+    Max = 301
 },
 
 RAP = {
