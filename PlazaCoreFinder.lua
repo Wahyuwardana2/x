@@ -106,7 +106,64 @@ Name = {
     Match = "Exact", -- Exact / Contains / StartsWith / EndsWith
 
     List = {
-    "pyrocoil",
+    "pyrocoil"
+    }
+
+},
+
+
+Mutation = {
+
+Enabled = false,
+Require = false,  -- true = wajib ada mutation, false = normal boleh
+
+Mode = "Blacklist",
+Match = "Exact",
+List = {
+
+"Shiny"
+
+}
+
+},
+
+Price = {
+    Enabled = true,
+    Min = 1,
+    Max = 500
+},
+
+RAP = {
+
+Enabled = false,
+
+Percent = 1
+
+}
+
+
+},
+
+
+
+------------------------------------------------
+-- FISH
+------------------------------------------------
+
+Fish = {
+
+Enabled = true,
+
+
+Name = {
+
+    Enabled = true,
+
+    Mode = "Whitelist", -- Whitelist / Blacklist
+
+    Match = "Exact", -- Exact / Contains / StartsWith / EndsWith
+
+    List = {
     "stormshell brute",
     "wintertusk mammofin"
     }
@@ -130,9 +187,9 @@ List = {
 },
 
 Price = {
-    Enabled = false,
+    Enabled = true,
     Min = 1,
-    Max = 300
+    Max = 200
 },
 
 RAP = {
@@ -145,10 +202,6 @@ Percent = 1
 
 
 },
-
-
-
-
 
 ------------------------------------------------
 -- GEARS
@@ -245,6 +298,9 @@ Name = {
     "galaxy conqueror",
     "queen kraken",
     "abyssfire",
+    "soulreaver",
+    "pirate octopus",
+    "blazing fire",
     "dark seahorse"
 
 }
