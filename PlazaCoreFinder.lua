@@ -193,7 +193,7 @@ List = {
 Price = {
     Enabled = true,
     Min = 1,
-    Max = 26
+    Max = 30
 },
 
 RAP = {
