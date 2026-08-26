@@ -174,7 +174,7 @@ Name = {
 
 Mutation = {
 
-Enabled = true,
+Enabled = false,
 Require = true, -- true = wajib ada mutation, false = normal boleh
 Mode = "Blacklist",
 Match = "Exact",
@@ -193,7 +193,7 @@ List = {
 Price = {
     Enabled = false,
     Min = 1,
-    Max = 100
+    Max = 26
 },
 
 RAP = {
