@@ -76,9 +76,9 @@ Debug = true,
 ------------------------------------------------
 
 
-LoadDelay = 5,
+LoadDelay = 3,
 
-StayTime = 5,
+StayTime = 7,
 
 
 
