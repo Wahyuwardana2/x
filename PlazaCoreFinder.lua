@@ -75,9 +75,9 @@ Debug = true,
 -- LOAD
 ------------------------------------------------
 
-LoadDelay = 5,
+LoadDelay = 1,
 
-StayTime = 2,
+StayTime = 3,
 
 
 
@@ -381,7 +381,7 @@ RAP = {
 
 Enabled = true,
 
-Percent = 14
+Percent = 1
 
 }
 
