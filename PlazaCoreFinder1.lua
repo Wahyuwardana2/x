@@ -603,6 +603,10 @@ local function GetWebhook(itemType)
 	return Config.Webhook[itemType]
 end
 
+local function GetWIBTime()
+    return os.date("!%d/%m/%Y %H:%M:%S", os.time() + 7 * 60 * 60) .. " WIB"
+end
+
 local function CleanRAPName(name)
 	local result = tostring(name or "")
 
@@ -1356,8 +1360,8 @@ local function SendWebhook(items)
 				},
 
 				footer = {
-					text = "W FINDER | " .. jobId
-				}
+    text = "W FINDER | " .. game.JobId .. " | " .. GetWIBTime()
+}
 			}}
 		}
 
