@@ -333,7 +333,7 @@ Name = {
 Price = {
     Enabled = true,
     Min = 4500,
-    Max = 10000
+    Max = 8000
 },
 
 RAP = {
