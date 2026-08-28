@@ -70,7 +70,7 @@ local Config = {
 			Price = {
 				Enabled = true,
 				Min = 1,
-				Max = 301
+				Max = 220
 			},
 
 			RAP = {
