@@ -2725,17 +2725,20 @@ local function CreateEmbed(
 
 
 
-       footer = {
-
+      footer = {
     text =
         "W FINDER | "
         ..
-        JobId
+        game.JobId
         ..
         " | "
         ..
-        GetWIBTime()
-
+        os.date(
+            "%d/%m/%Y %H:%M:%S",
+            os.time() + (7 * 60 * 60)
+        )
+        ..
+        " WIB"
 }
         }
 
