@@ -4385,8 +4385,7 @@ local function SendWebhook(items)
 
 
 
-                   footer = {
-
+                  footer = {
     text =
         "W FINDER | "
         ..
@@ -4394,8 +4393,12 @@ local function SendWebhook(items)
         ..
         " | "
         ..
-        GetWIBTime()
-
+        os.date(
+            "%d/%m/%Y %H:%M:%S",
+            os.time() + (7 * 60 * 60)
+        )
+        ..
+        " WIB"
 }
 
 
