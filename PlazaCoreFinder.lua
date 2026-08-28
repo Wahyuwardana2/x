@@ -2525,7 +2525,27 @@ end
 
 
 
+------------------------------------------------
+-- WIB TIME
+------------------------------------------------
 
+local function GetWIBTime()
+
+    local utc = os.date("!*t")
+
+    local timestamp =
+        os.time({
+            year = utc.year,
+            month = utc.month,
+            day = utc.day,
+            hour = utc.hour + 7,
+            min = utc.min,
+            sec = utc.sec
+        })
+
+    return os.date("%d/%m/%Y %H:%M:%S WIB", timestamp)
+
+end
 
 
 
@@ -2705,16 +2725,18 @@ local function CreateEmbed(
 
 
 
-        footer = {
+       footer = {
 
+    text =
+        "W FINDER | "
+        ..
+        JobId
+        ..
+        " | "
+        ..
+        GetWIBTime()
 
-            text =
-
-            "W FINDER  | JobId : "
-            ..
-            JobId
-
-
+}
         }
 
 
@@ -4360,14 +4382,18 @@ local function SendWebhook(items)
 
 
 
-                    footer = {
+                   footer = {
 
-                        text =
-                        "W FINDER | "
-                        ..
-                        game.JobId
+    text =
+        "W FINDER | "
+        ..
+        game.JobId
+        ..
+        " | "
+        ..
+        GetWIBTime()
 
-                    }
+}
 
 
                 }
