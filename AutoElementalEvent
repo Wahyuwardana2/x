@@ -1,32 +1,25 @@
 --============================================================--
 -- ELEMENTAL WEATHER AUTO TELEPORT
---============================================================--
--- FITUR:
---   • Check current server weather/event realtime
---   • Tidak menggunakan server hop
---   • Save lokasi PLAYER saat weather baru muncul
---   • Teleport ke lokasi weather
---   • Selama weather aktif, posisi + arah hadap dipaksa kembali
---   • Tidak ada toleransi CFrame
---   • Weather selesai -> kembali ke lokasi yang disimpan
---   • Weather berikutnya -> simpan lokasi terbaru lagi
---   • GUI menampilkan weather aktif
---   • GUI bisa minimize
+-- ULTRA LIGHTWEIGHT V2
 --============================================================--
 
 local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
+local UserInputService = game:GetService("UserInputService")
 
-local player = Players.LocalPlayer
+local Player = Players.LocalPlayer
 
 --============================================================--
 -- CONFIG
 --============================================================--
 
-local CHECK_INTERVAL = 1
+-- Semakin besar = semakin ringan
+local CHECK_INTERVAL = 2
 
--- Tidak ada toleransi.
--- Perbedaan CFrame sekecil apa pun dianggap berbeda.
+-- Pemeriksaan posisi saat weather aktif
+local FORCE_INTERVAL = 0.5
+
+-- Tetap menggunakan exact CFrame
 local FORCE_CFRAME = true
 
 --============================================================--
@@ -35,7 +28,7 @@ local FORCE_CFRAME = true
 
 local Locations = {
 
-    ["ES"] = CFrame.new(
+    ES = CFrame.new(
         -1096.22998,
         138.323044,
         5619.18994,
@@ -50,7 +43,7 @@ local Locations = {
         0.887095034
     ),
 
-    ["PETIR"] = CFrame.new(
+    PETIR = CFrame.new(
         -794.318909,
         101.366158,
         5665.493164,
@@ -65,7 +58,7 @@ local Locations = {
         -0.992839456
     ),
 
-    ["LAVA"] = CFrame.new(
+    LAVA = CFrame.new(
         -608.154785,
         98.0565262,
         5573.12061,
@@ -82,25 +75,23 @@ local Locations = {
 }
 
 --============================================================--
--- WEATHER NAME -> LOCATION
+-- WEATHER -> TARGET
 --============================================================--
 
 local WeatherLocations = {
-
     ["storm elemental event"] = "PETIR",
     ["blizzard elemental event"] = "ES",
-    ["volcano elemental event"] = "LAVA",
-
+    ["volcano elemental event"] = "LAVA"
 }
 
 --============================================================--
 -- REMOVE OLD GUI
 --============================================================--
 
-local old = CoreGui:FindFirstChild("ElementalWeatherGUI")
+local OldGUI = CoreGui:FindFirstChild("ElementalWeatherGUI")
 
-if old then
-    old:Destroy()
+if OldGUI then
+    OldGUI:Destroy()
 end
 
 --============================================================--
@@ -114,7 +105,7 @@ ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 ScreenGui.Parent = CoreGui
 
 local Main = Instance.new("Frame")
-Main.Size = UDim2.new(0, 300, 0, 190)
+Main.Size = UDim2.fromOffset(300, 190)
 Main.Position = UDim2.new(0, 20, 0.5, -95)
 Main.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 Main.BorderSizePixel = 0
@@ -130,7 +121,7 @@ MainCorner.Parent = Main
 
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, -50, 0, 35)
-Title.Position = UDim2.new(0, 10, 0, 0)
+Title.Position = UDim2.fromOffset(10, 0)
 Title.BackgroundTransparency = 1
 Title.Text = "ELEMENTAL WEATHER"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -140,11 +131,11 @@ Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.Parent = Main
 
 --============================================================--
--- MINIMIZE BUTTON
+-- MINIMIZE
 --============================================================--
 
 local Minimize = Instance.new("TextButton")
-Minimize.Size = UDim2.new(0, 35, 0, 30)
+Minimize.Size = UDim2.fromOffset(35, 30)
 Minimize.Position = UDim2.new(1, -40, 0, 3)
 Minimize.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 Minimize.BorderSizePixel = 0
@@ -159,12 +150,12 @@ MinCorner.CornerRadius = UDim.new(0, 7)
 MinCorner.Parent = Minimize
 
 --============================================================--
--- WEATHER LABEL
+-- WEATHER TITLE
 --============================================================--
 
 local WeatherTitle = Instance.new("TextLabel")
 WeatherTitle.Size = UDim2.new(1, -20, 0, 25)
-WeatherTitle.Position = UDim2.new(0, 10, 0, 45)
+WeatherTitle.Position = UDim2.fromOffset(10, 45)
 WeatherTitle.BackgroundTransparency = 1
 WeatherTitle.Text = "ACTIVE WEATHER"
 WeatherTitle.TextColor3 = Color3.fromRGB(170, 170, 170)
@@ -173,9 +164,13 @@ WeatherTitle.Font = Enum.Font.GothamBold
 WeatherTitle.TextXAlignment = Enum.TextXAlignment.Left
 WeatherTitle.Parent = Main
 
+--============================================================--
+-- WEATHER LABEL
+--============================================================--
+
 local WeatherLabel = Instance.new("TextLabel")
 WeatherLabel.Size = UDim2.new(1, -20, 0, 35)
-WeatherLabel.Position = UDim2.new(0, 10, 0, 68)
+WeatherLabel.Position = UDim2.fromOffset(10, 68)
 WeatherLabel.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 WeatherLabel.BorderSizePixel = 0
 WeatherLabel.Text = "NONE"
@@ -194,7 +189,7 @@ WeatherCorner.Parent = WeatherLabel
 
 local StatusLabel = Instance.new("TextLabel")
 StatusLabel.Size = UDim2.new(1, -20, 0, 25)
-StatusLabel.Position = UDim2.new(0, 10, 0, 112)
+StatusLabel.Position = UDim2.fromOffset(10, 112)
 StatusLabel.BackgroundTransparency = 1
 StatusLabel.Text = "Status: Monitoring..."
 StatusLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
@@ -209,7 +204,7 @@ StatusLabel.Parent = Main
 
 local TargetLabel = Instance.new("TextLabel")
 TargetLabel.Size = UDim2.new(1, -20, 0, 25)
-TargetLabel.Position = UDim2.new(0, 10, 0, 140)
+TargetLabel.Position = UDim2.fromOffset(10, 140)
 TargetLabel.BackgroundTransparency = 1
 TargetLabel.Text = "Target: NONE"
 TargetLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
@@ -219,58 +214,106 @@ TargetLabel.TextXAlignment = Enum.TextXAlignment.Left
 TargetLabel.Parent = Main
 
 --============================================================--
+-- GUI UPDATE CACHE
+--============================================================--
+
+local LastWeatherText
+local LastTargetText
+local LastStatusText
+
+local function setLabel(label, value, cacheName)
+
+    if cacheName == 1 then
+
+        if LastWeatherText == value then
+            return
+        end
+
+        LastWeatherText = value
+
+    elseif cacheName == 2 then
+
+        if LastTargetText == value then
+            return
+        end
+
+        LastTargetText = value
+
+    elseif cacheName == 3 then
+
+        if LastStatusText == value then
+            return
+        end
+
+        LastStatusText = value
+
+    end
+
+    label.Text = value
+end
+
+local function updateGUI(weather, target, status)
+
+    setLabel(
+        WeatherLabel,
+        weather or "NONE",
+        1
+    )
+
+    setLabel(
+        TargetLabel,
+        target and ("Target: " .. target) or "Target: NONE",
+        2
+    )
+
+    setLabel(
+        StatusLabel,
+        "Status: " .. (status or "Monitoring..."),
+        3
+    )
+
+end
+
+--============================================================--
 -- MINIMIZE
 --============================================================--
 
-local minimized = false
+local Minimized = false
 
 Minimize.MouseButton1Click:Connect(function()
 
-    minimized = not minimized
+    Minimized = not Minimized
 
-    if minimized then
+    local Visible = not Minimized
 
-        Main.Size = UDim2.new(0, 300, 0, 40)
+    WeatherTitle.Visible = Visible
+    WeatherLabel.Visible = Visible
+    StatusLabel.Visible = Visible
+    TargetLabel.Visible = Visible
 
-        WeatherTitle.Visible = false
-        WeatherLabel.Visible = false
-        StatusLabel.Visible = false
-        TargetLabel.Visible = false
+    Main.Size = Visible
+        and UDim2.fromOffset(300, 190)
+        or UDim2.fromOffset(300, 40)
 
-        Minimize.Text = "+"
-
-    else
-
-        Main.Size = UDim2.new(0, 300, 0, 190)
-
-        WeatherTitle.Visible = true
-        WeatherLabel.Visible = true
-        StatusLabel.Visible = true
-        TargetLabel.Visible = true
-
-        Minimize.Text = "-"
-
-    end
+    Minimize.Text = Visible and "-" or "+"
 
 end)
 
 --============================================================--
--- DRAG GUI
+-- DRAG
 --============================================================--
 
-local UserInputService = game:GetService("UserInputService")
-
-local dragging = false
-local dragStart
-local startPos
+local Dragging = false
+local DragStart
+local StartPosition
 
 Title.InputBegan:Connect(function(input)
 
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
 
-        dragging = true
-        dragStart = input.Position
-        startPos = Main.Position
+        Dragging = true
+        DragStart = input.Position
+        StartPosition = Main.Position
 
     end
 
@@ -279,48 +322,71 @@ end)
 Title.InputEnded:Connect(function(input)
 
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = false
+        Dragging = false
     end
 
 end)
 
 UserInputService.InputChanged:Connect(function(input)
 
-    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-
-        local delta = input.Position - dragStart
-
-        Main.Position = UDim2.new(
-            startPos.X.Scale,
-            startPos.X.Offset + delta.X,
-            startPos.Y.Scale,
-            startPos.Y.Offset + delta.Y
-        )
-
+    if not Dragging then
+        return
     end
+
+    if input.UserInputType ~= Enum.UserInputType.MouseMovement then
+        return
+    end
+
+    local Delta = input.Position - DragStart
+
+    Main.Position = UDim2.new(
+        StartPosition.X.Scale,
+        StartPosition.X.Offset + Delta.X,
+        StartPosition.Y.Scale,
+        StartPosition.Y.Offset + Delta.Y
+    )
 
 end)
 
 --============================================================--
--- GET REPLION SERVER BROWSER
+-- SERVER BROWSER CACHE
 --============================================================--
+
+local ServerBrowserReplion = nil
+local ReplionSearchFinished = false
 
 local function getServerBrowserReplion()
 
-    if not getgc then
+    if ServerBrowserReplion then
+        return ServerBrowserReplion
+    end
+
+    if ReplionSearchFinished then
         return nil
     end
 
-    for _, v in pairs(getgc(true)) do
+    if not getgc then
+        ReplionSearchFinished = true
+        return nil
+    end
 
-        if typeof(v) == "table" then
+    local Success, Objects = pcall(getgc, true)
 
-            local ok, str = pcall(function()
-                return tostring(v)
-            end)
+    if not Success or not Objects then
+        return nil
+    end
 
-            if ok and str == "Replion<ServerBrowser>" then
-                return v
+    for _, Object in pairs(Objects) do
+
+        if typeof(Object) == "table" then
+
+            local SuccessName, Name = pcall(tostring, Object)
+
+            if SuccessName and Name == "Replion<ServerBrowser>" then
+
+                ServerBrowserReplion = Object
+
+                return Object
             end
 
         end
@@ -331,33 +397,37 @@ local function getServerBrowserReplion()
 end
 
 --============================================================--
--- GET CURRENT SERVER DATA
+-- CURRENT SERVER
 --============================================================--
 
 local function getCurrentServer()
 
-    local replion = getServerBrowserReplion()
+    local Replion = getServerBrowserReplion()
 
-    if not replion then
+    if not Replion then
         return nil
     end
 
-    local data = replion.Data
+    local Success, Data = pcall(function()
+        return Replion.Data
+    end)
 
-    if not data then
+    if not Success or typeof(Data) ~= "table" then
         return nil
     end
 
-    local servers = data.Servers
+    local Servers = Data.Servers
 
-    if not servers then
+    if typeof(Servers) ~= "table" then
         return nil
     end
 
-    for _, server in pairs(servers) do
+    for _, Server in pairs(Servers) do
 
-        if server.JobId == game.JobId then
-            return server
+        if typeof(Server) == "table"
+            and Server.JobId == game.JobId then
+
+            return Server
         end
 
     end
@@ -366,252 +436,153 @@ local function getCurrentServer()
 end
 
 --============================================================--
--- GET ACTIVE EVENTS
+-- ACTIVE WEATHER
 --============================================================--
 
 local function getActiveWeather()
 
-    local server = getCurrentServer()
+    local Server = getCurrentServer()
 
-    if not server then
-
-        return {}, nil
-
+    if not Server then
+        return nil
     end
 
-    local events = server.Events
+    local Events = Server.Events
 
-    if not events then
-
-        return {}, server
-
+    if typeof(Events) ~= "table" then
+        return nil
     end
 
-    local found = {}
+    for _, Event in pairs(Events) do
 
-    for _, event in pairs(events) do
+        if typeof(Event) == "string" then
 
-        if typeof(event) == "string" then
+            local Target =
+                WeatherLocations[string.lower(Event)]
 
-            table.insert(found, event)
+            if Target then
+                return Event, Target
+            end
 
         end
 
     end
 
-    return found, server
+    return nil
 end
 
 --============================================================--
--- FIND ELEMENTAL WEATHER
---============================================================--
-
-local function findElementalWeather(events)
-
-    for _, event in ipairs(events) do
-
-        local lower = string.lower(event)
-
-        if WeatherLocations[lower] then
-
-            return event, WeatherLocations[lower]
-
-        end
-
-    end
-
-    return nil, nil
-end
-
---============================================================--
--- CHARACTER
+-- CHARACTER ROOT
 --============================================================--
 
 local function getRoot()
 
-    local character = player.Character
+    local Character = Player.Character
 
-    if not character then
+    if not Character then
         return nil
     end
 
-    return character:FindFirstChild("HumanoidRootPart")
+    return Character:FindFirstChild("HumanoidRootPart")
 end
 
 --============================================================--
--- SAVE LOCATION
+-- STATE
 --============================================================--
 
 local SavedLocation = nil
 
---============================================================--
--- CURRENT WEATHER STATE
---============================================================--
-
 local CurrentWeather = nil
 local CurrentTarget = nil
+
 local WeatherActive = false
 
 --============================================================--
--- TELEPORT
+-- EXACT CFRAME
 --============================================================--
 
-local function teleportTo(cframe)
+local function isExactCFrame(Root, Target)
 
-    local root = getRoot()
-
-    if not root then
-        return false
-    end
-
-    root.CFrame = cframe
-
-    return true
+    return Root
+        and Target
+        and Root.CFrame == Target
 end
 
 --============================================================--
--- EXACT CFRAME CHECK
---============================================================--
--- Tidak memakai magnitude/toleransi.
--- Position DAN rotation dibandingkan.
-
-local function isExactCFrame(root, target)
-
-    if not root or not target then
-        return false
-    end
-
-    return root.CFrame == target
-end
-
---============================================================--
--- FORCE WEATHER LOCATION
+-- ENFORCE POSITION
 --============================================================--
 
 local function enforceWeatherLocation()
+
+    if not FORCE_CFRAME then
+        return
+    end
 
     if not WeatherActive then
         return
     end
 
-    if not CurrentTarget then
+    local Target = Locations[CurrentTarget]
+
+    if not Target then
         return
     end
 
-    local targetCFrame = Locations[CurrentTarget]
+    local Root = getRoot()
 
-    if not targetCFrame then
+    if not Root then
         return
     end
 
-    local root = getRoot()
-
-    if not root then
-        return
-    end
-
-    -- Tidak ada toleransi.
-    -- Sedikit perubahan posisi / arah hadap langsung dikembalikan.
-
-    if not isExactCFrame(root, targetCFrame) then
-
-        root.CFrame = targetCFrame
-
+    if not isExactCFrame(Root, Target) then
+        Root.CFrame = Target
     end
 
 end
 
 --============================================================--
--- UPDATE GUI
+-- START WEATHER
 --============================================================--
 
-local function updateGUI(weatherName, targetName)
+local function startWeather(WeatherName, TargetName)
 
-    if weatherName then
+    local Target = Locations[TargetName]
 
-        WeatherLabel.Text = weatherName
-        TargetLabel.Text = "Target: " .. tostring(targetName)
-        StatusLabel.Text = "Status: WEATHER ACTIVE"
-
-    else
-
-        WeatherLabel.Text = "NONE"
-        TargetLabel.Text = "Target: NONE"
-        StatusLabel.Text = "Status: Monitoring..."
-
-    end
-
-end
-
---============================================================--
--- RETURN TO SAVED LOCATION
---============================================================--
-
-local function returnToSavedLocation()
-
-    if not SavedLocation then
+    if not Target then
         return
     end
 
-    local root = getRoot()
+    local Root = getRoot()
 
-    if not root then
+    if not Root then
         return
     end
 
-    -- Exact saved CFrame.
-    root.CFrame = SavedLocation
+    -- Simpan lokasi sebelum teleport
+    SavedLocation = Root.CFrame
 
-    StatusLabel.Text = "Status: RETURNED"
-
-end
-
---============================================================--
--- WEATHER START
---============================================================--
-
-local function startWeather(weatherName, targetName)
-
-    if WeatherActive then
-        return
-    end
-
-    local root = getRoot()
-
-    if not root then
-        return
-    end
-
-    --========================================================--
-    -- SIMPAN LOKASI PLAYER SAAT WEATHER BARU TERDETEKSI
-    --========================================================--
-
-    SavedLocation = root.CFrame
-
-    CurrentWeather = weatherName
-    CurrentTarget = targetName
+    CurrentWeather = WeatherName
+    CurrentTarget = TargetName
     WeatherActive = true
 
-    updateGUI(weatherName, targetName)
+    updateGUI(
+        WeatherName,
+        TargetName,
+        "TELEPORTING..."
+    )
 
-    StatusLabel.Text = "Status: TELEPORTING..."
+    Root.CFrame = Target
 
-    task.wait()
-
-    --========================================================--
-    -- TELEPORT KE WEATHER
-    --========================================================--
-
-    local targetCFrame = Locations[targetName]
-
-    if targetCFrame then
-        root.CFrame = targetCFrame
-    end
+    updateGUI(
+        WeatherName,
+        TargetName,
+        "WEATHER ACTIVE"
+    )
 
 end
 
 --============================================================--
--- WEATHER END
+-- STOP WEATHER
 --============================================================--
 
 local function stopWeather()
@@ -620,96 +591,103 @@ local function stopWeather()
         return
     end
 
+    local ReturnLocation = SavedLocation
+
     WeatherActive = false
 
     CurrentWeather = nil
     CurrentTarget = nil
 
-    updateGUI(nil, nil)
+    updateGUI(
+        nil,
+        nil,
+        "RETURNING..."
+    )
 
-    StatusLabel.Text = "Status: RETURNING..."
+    if ReturnLocation then
 
-    task.wait()
+        local Root = getRoot()
 
-    --========================================================--
-    -- KEMBALI KE LOKASI SEBELUM WEATHER
-    --========================================================--
+        if Root then
+            Root.CFrame = ReturnLocation
+        end
 
-    returnToSavedLocation()
-
-    --========================================================--
-    -- HAPUS SAVED LOCATION
-    --========================================================--
+    end
 
     SavedLocation = nil
 
-    StatusLabel.Text = "Status: Monitoring..."
+    updateGUI(
+        nil,
+        nil,
+        "Monitoring..."
+    )
 
 end
 
 --============================================================--
--- MAIN WEATHER CHECK
+-- MAIN WEATHER LOOP
 --============================================================--
 
 task.spawn(function()
 
-    while task.wait(CHECK_INTERVAL) do
+    while true do
 
-        local events, server = getActiveWeather()
+        task.wait(CHECK_INTERVAL)
 
-        local weatherName, targetName =
-            findElementalWeather(events)
+        local WeatherName, TargetName =
+            getActiveWeather()
 
         --====================================================--
-        -- WEATHER AKTIF
+        -- WEATHER ACTIVE
         --====================================================--
 
-        if weatherName then
+        if WeatherName then
 
-            -- Weather baru
             if not WeatherActive then
 
+                -- Weather baru
                 startWeather(
-                    weatherName,
-                    targetName
+                    WeatherName,
+                    TargetName
                 )
 
             else
 
-                --================================================--
-                -- WEATHER MASIH AKTIF
-                --================================================--
+                -- Weather masih aktif
+                if CurrentWeather ~= WeatherName
+                    or CurrentTarget ~= TargetName then
 
-                CurrentWeather = weatherName
-                CurrentTarget = targetName
+                    CurrentWeather = WeatherName
+                    CurrentTarget = TargetName
 
-                WeatherLabel.Text = weatherName
-                TargetLabel.Text = "Target: " .. tostring(targetName)
-                StatusLabel.Text = "Status: WEATHER ACTIVE"
+                    updateGUI(
+                        WeatherName,
+                        TargetName,
+                        "WEATHER ACTIVE"
+                    )
 
-                --================================================--
-                -- PAKSA POSISI + ARAH HADAP
-                --================================================--
+                    -- Jika weather berubah ke target lain
+                    local NewTarget = Locations[TargetName]
 
-                enforceWeatherLocation()
+                    if NewTarget then
+                        local Root = getRoot()
 
-            end
+                        if Root then
+                            Root.CFrame = NewTarget
+                        end
+                    end
 
-        else
-
-            --====================================================--
-            -- TIDAK ADA WEATHER
-            --====================================================--
-
-            if WeatherActive then
-
-                stopWeather()
-
-            else
-
-                updateGUI(nil, nil)
+                end
 
             end
+
+        --====================================================--
+        -- WEATHER TIDAK ADA
+        --====================================================--
+
+        elseif WeatherActive then
+
+            stopWeather()
 
         end
 
@@ -718,19 +696,17 @@ task.spawn(function()
 end)
 
 --============================================================--
--- EXTRA POSITION MONITOR
+-- LIGHT POSITION LOOP
 --============================================================--
--- Ini membuat koreksi posisi lebih cepat daripada menunggu
--- CHECK_INTERVAL.
 
 task.spawn(function()
 
-    while task.wait(0.1) do
+    while true do
+
+        task.wait(FORCE_INTERVAL)
 
         if WeatherActive then
-
             enforceWeatherLocation()
-
         end
 
     end
@@ -741,18 +717,25 @@ end)
 -- CHARACTER RESPAWN
 --============================================================--
 
-player.CharacterAdded:Connect(function()
+Player.CharacterAdded:Connect(function(Character)
 
-    task.wait(1)
+    local Root = Character:WaitForChild(
+        "HumanoidRootPart",
+        10
+    )
+
+    if not Root then
+        return
+    end
 
     if WeatherActive and CurrentTarget then
 
-        local targetCFrame = Locations[CurrentTarget]
+        task.wait(0.2)
 
-        if targetCFrame then
+        local Target = Locations[CurrentTarget]
 
-            teleportTo(targetCFrame)
-
+        if Target then
+            Root.CFrame = Target
         end
 
     end
@@ -763,15 +746,23 @@ end)
 -- INITIAL GUI
 --============================================================--
 
-WeatherLabel.Text = "NONE"
-TargetLabel.Text = "Target: NONE"
-StatusLabel.Text = "Status: Monitoring..."
+updateGUI(
+    nil,
+    nil,
+    "Monitoring..."
+)
+
+--============================================================--
+-- CONSOLE
+--============================================================--
 
 print("========================================")
 print("ELEMENTAL WEATHER AUTO TELEPORT")
+print("ULTRA LIGHTWEIGHT V2")
 print("========================================")
-print("Current JobId:", game.JobId)
-print("Weather checker started")
-print("No server hopping")
-print("Exact CFrame enforcement: ON")
+print("JobId:", game.JobId)
+print("Weather Check:", CHECK_INTERVAL, "sec")
+print("Position Check:", FORCE_INTERVAL, "sec")
+print("Server Hop: OFF")
+print("Exact CFrame: ON")
 print("========================================")
