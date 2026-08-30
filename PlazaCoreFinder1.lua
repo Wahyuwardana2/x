@@ -766,47 +766,53 @@ local function CheckPrice(item)
 end
 
 --================================================--
--- RAP FILTER
+-- RAP FILTER + DISPLAY
 --================================================--
 
 local function CheckRAP(item)
-	local category = GetCategory(item.ItemType)
 
-	if not category or not category.RAP or not category.RAP.Enabled then
+	local category = GetCategory(item.ItemType)
+	local cfg = category and category.RAP
+
+	-- Tetap ambil RAP walaupun RAP filter OFF
+	local rap = GetRAP(item.ItemType, item.Name, item)
+
+	if rap then
+		item.RAP = rap
+	end
+
+	-- RAP filter OFF:
+	-- RAP tetap ditampilkan, tetapi TIDAK digunakan untuk filter
+	if not cfg or not cfg.Enabled then
 		return true
 	end
 
-	print(
-		"[RAP TRY]",
-		item.ItemType,
-		"Display:", item.Name,
-		"Base:", item.BaseName,
-		"Raw:", item.RawName,
-		"ID:", item.ItemId
-	)
-
-	local rap = GetRAP(item.ItemType, item.Name, item)
-
-	print("[RAP RESULT]", rap)
-
+	-- RAP filter ON
 	if not rap then
 		return true
 	end
 
-	item.RAP = rap
-
-	local percent = category.RAP.Percent or 1
+	local percent = cfg.Percent or 1
 	local limit = rap * (100 - percent) / 100
 
 	if item.Price > limit then
-		DebugPrint("[OVER RAP]", item.Name, item.Price, rap)
+		DebugPrint(
+			"[OVER RAP]",
+			item.Name,
+			item.Price,
+			rap
+		)
+
 		return false
 	end
 
-	item.UnderRap = math.floor((1 - item.Price / rap) * 100)
+	item.UnderRap = math.floor(
+		(1 - item.Price / rap) * 100
+	)
 
 	return true
 end
+
 
 --================================================--
 -- CATEGORY
