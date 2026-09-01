@@ -213,7 +213,7 @@ local Config = {
 
 			RAP = {
 				Enabled = true,
-				Percent = 1
+				Percent = 4
 			}
 		},
 
@@ -274,7 +274,7 @@ local Config = {
 
 			RAP = {
 				Enabled = true,
-				Percent = 5
+				Percent = 10
 			}
 		},
 
