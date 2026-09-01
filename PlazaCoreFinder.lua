@@ -55,7 +55,10 @@ local Config = {
 				Match = "Exact",
 				List = {
 					"pyrocoil",
-					"wintertusk mammofin"
+					"stormshell brute",
+					"wintertusk mammofin",
+					"overlord hydra",
+					"elemental hydra"
 				}
 			},
 
@@ -75,7 +78,7 @@ local Config = {
 
 			RAP = {
 				Enabled = true,
-				Percent = 50
+				Percent = 40
 			}
 		},
 
