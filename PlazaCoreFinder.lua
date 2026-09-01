@@ -127,6 +127,9 @@ local Config = {
 				Match = "Exact",
 
 				List = {
+					"frozen rod",
+					"verdis blade",
+					"",
 					"gold rod",
 					"hyper rod",
 					"ghoul rod",
@@ -202,7 +205,8 @@ local Config = {
 					"pirate banjo",
 					"reaver scyte",
 					"void kraken",
-					"voidpunk axe"
+					"voidpunk axe",
+					"gingerbread sword"
 				}
 			},
 
