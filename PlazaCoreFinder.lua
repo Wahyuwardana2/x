@@ -1028,9 +1028,7 @@ local function BuildItemText(item)
 
 	if item.UnderRap then
 		text ..=
-			"Under RAP : " ..
-			tostring(item.UnderRap) ..
-			"%\n"
+			"Under RAP : ***`" .. tostring(item.UnderRap) .. "`***%\n"
 	end
 
 	return text .. "\n"
