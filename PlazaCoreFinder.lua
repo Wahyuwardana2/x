@@ -1008,7 +1008,7 @@ local function BuildItemText(item)
 	end
 
 	if item.Mutation and item.Mutation ~= "" then
-		text ..= "Mutation : *" .. item.Mutation .. "*\n"
+		text ..= "Mutation : ***" .. item.Mutation .. "***\n"
 	end
 
 	if item.Size and item.Size ~= "" then
@@ -1023,7 +1023,7 @@ local function BuildItemText(item)
 	end
 
 	text ..=
-		"\nPrice : *" .. tostring(item.Price or 0) .. "*" ..
+		"\nPrice : ***" .. tostring(item.Price or 0) .. "***" ..
 		"\nRAP : " .. tostring(item.RAP or "-") .. "\n"
 
 	if item.UnderRap then
