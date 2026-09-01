@@ -55,7 +55,7 @@ local Config = {
 				Match = "Exact",
 				List = {
 					"pyrocoil",
-					"megalodon",
+					-- "megalodon",
 					-- "stormshell brute",
 					"wintertusk mammofin",
 					-- "overlord hydra",
