@@ -54,7 +54,7 @@ local Config = {
 				Mode = "Whitelist",
 				Match = "Exact",
 				List = {
-					"pyrocoil",
+					-- "pyrocoil",
 					-- "megalodon",
 					-- "stormshell brute",
 					"wintertusk mammofin",
