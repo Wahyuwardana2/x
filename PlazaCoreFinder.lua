@@ -68,14 +68,14 @@ local Config = {
 			},
 
 			Price = {
-				Enabled = true,
+				Enabled = false,
 				Min = 1,
 				Max = 150
 			},
 
 			RAP = {
-				Enabled = false,
-				Percent = 1
+				Enabled = true,
+				Percent = 50
 			}
 		},
 
