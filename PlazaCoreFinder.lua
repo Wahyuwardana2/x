@@ -55,10 +55,11 @@ local Config = {
 				Match = "Exact",
 				List = {
 					"pyrocoil",
+					"megalodon",
 					"stormshell brute",
 					"wintertusk mammofin",
-					"overlord hydra",
-					"elemental hydra"
+					-- "overlord hydra",
+					-- "elemental hydra"
 				}
 			},
 
@@ -71,13 +72,13 @@ local Config = {
 			},
 
 			Price = {
-				Enabled = false,
+				Enabled = true,
 				Min = 1,
-				Max = 150
+				Max = 196
 			},
 
 			RAP = {
-				Enabled = true,
+				Enabled = false,
 				Percent = 40
 			}
 		},
