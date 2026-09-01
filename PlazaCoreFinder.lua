@@ -995,7 +995,7 @@ local function BuildItemText(item)
 
 	local text =
 		"━━━━━━━━━━━━━━\n\n" ..
-		"🎣 **" .. tostring(item.Name or "-") .. "**\n\n" ..
+		"🎣 **`" .. tostring(item.Name or "-") .. "`**\n\n" ..
 		"**Seller**\n" ..
 		tostring(item.Seller or "-") ..
 		"\n\n" ..
