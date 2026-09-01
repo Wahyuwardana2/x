@@ -129,7 +129,6 @@ local Config = {
 				List = {
 					"frozen rod",
 					"verdis blade",
-					"",
 					"gold rod",
 					"hyper rod",
 					"ghoul rod",
