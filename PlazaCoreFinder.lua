@@ -1096,7 +1096,7 @@ local function SendWebhook(items)
 
 		local payload = {
 			username = "PLAZA SCANNER BOT",
-			avatar_url = "https://imgcdn.dev/i/Y8Qko2",
+			avatar_url = "https://s6.imgcdn.dev/Y8Qko2.png",
 
 			embeds = {{
 				title =
