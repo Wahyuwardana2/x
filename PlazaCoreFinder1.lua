@@ -65,9 +65,11 @@ Name = {
     Match = "Exact", -- Exact / Contains / StartsWith / EndsWith
 
     List = {
-    "megalodon",
+    -- "megalodon",
     -- "stormshell brute",
     -- "wintertusk mammofin"
+		"overlord hydra",
+		"elemental hydra"
     }
 
 },
@@ -75,7 +77,7 @@ Name = {
 
 Mutation = {
 
-Enabled = true,
+Enabled = false,
 Require = true,  -- true = wajib ada mutation, false = normal boleh
 
 Mode = "Blacklist",
@@ -89,7 +91,7 @@ List = {
 },
 
 Price = {
-    Enabled = true,
+    Enabled = false,
     Min = 1,
     Max = 200
 },
