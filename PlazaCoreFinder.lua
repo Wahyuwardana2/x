@@ -1,5 +1,5 @@
 --================================================--
--- W FINDER
+-- PLAZA SCANNER
 -- CORE + CONFIG + RAP + FILTER + SCANNER + HOP
 --================================================--
 
@@ -1008,7 +1008,7 @@ local function BuildItemText(item)
 	end
 
 	if item.Mutation and item.Mutation ~= "" then
-		text ..= "Mutation : " .. item.Mutation .. "\n"
+		text ..= "Mutation : *" .. item.Mutation .. "*\n"
 	end
 
 	if item.Size and item.Size ~= "" then
@@ -1023,7 +1023,7 @@ local function BuildItemText(item)
 	end
 
 	text ..=
-		"\nPrice : " .. tostring(item.Price or 0) ..
+		"\nPrice : *" .. tostring(item.Price or 0) .. "*" ..
 		"\nRAP : " .. tostring(item.RAP or "-") .. "\n"
 
 	if item.UnderRap then
@@ -1095,11 +1095,12 @@ local function SendWebhook(items)
 			jobId
 
 		local payload = {
-			username = "W FINDER",
+			username = "PLAZA SCANNER BOT",
+			avatar_url = "https://imgcdn.dev/i/Y8Qko2",
 
 			embeds = {{
 				title =
-					"🎣 W FINDER FOUND (" ..
+					"🎣 PLAZA SCANNER FOUND (" ..
 					#list ..
 					" ITEMS)",
 
@@ -1143,7 +1144,7 @@ local function SendWebhook(items)
 				},
 
 				footer = {
-    text = "W FINDER | " .. game.JobId .. " | " .. GetWIBTime()
+    text = "PLAZA SCANNER | " .. game.JobId .. " | " .. GetWIBTime()
 }
 			}}
 		}
@@ -1448,7 +1449,7 @@ end
 
 local function StartFinder()
 
-	print("🎣 W FINDER START")
+	print("🎣 PLAZA SCANNER START")
 
 	while true do
 
@@ -1486,4 +1487,4 @@ LoadServerCache()
 
 task.spawn(StartFinder)
 
-print("🎣 W FINDER FISHIT READY")
+print("🎣 PLAZA SCANNER FISHIT READY")
