@@ -54,9 +54,9 @@ local Config = {
 				Mode = "Whitelist",
 				Match = "Exact",
 				List = {
-					-- "pyrocoil",
+					"pyrocoil",
 					-- "megalodon",
-					-- "stormshell brute",
+					"stormshell brute",
 					"wintertusk mammofin",
 					-- "overlord hydra",
 					-- "elemental hydra"
@@ -72,13 +72,13 @@ local Config = {
 			},
 
 			Price = {
-				Enabled = true,
+				Enabled = false,
 				Min = 1,
 				Max = 196
 			},
 
 			RAP = {
-				Enabled = false,
+				Enabled = true,
 				Percent = 40
 			}
 		},
