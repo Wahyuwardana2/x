@@ -181,7 +181,7 @@ local Config = {
 					"bunny summoner",
 					"fallen staff",
 					"golden clockwork",
-					"empyrean staff",
+					-- "empyrean staff",
 					"void guitar",
 					"cloud weaver",
 					"overdrive",
