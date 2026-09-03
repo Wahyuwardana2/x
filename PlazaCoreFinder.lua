@@ -247,7 +247,7 @@ local Config = {
 				Enabled = true,
 				Min = 100,
 				Max = 100000,
-				Percent = nil
+				Percent = 2
 			}
 		},
 
@@ -291,7 +291,7 @@ local Config = {
 				Enabled = true,
 				Min = 100,
 				Max = 100000,
-				Percent = 0
+				Percent = nil
 			}
 		},
 
