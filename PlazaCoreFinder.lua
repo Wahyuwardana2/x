@@ -1971,7 +1971,7 @@ local function GetAllServers()
 				server.id ~= game.JobId
 				and server.playing >= Config.Server.MinPlayer
 				and server.playing <= Config.Server.MaxPlayer
-				and server.playing < server.maxPlayers
+				-- and server.playing < server.maxPlayers
 				and not IsServerUsed(
 					server.id
 				)
