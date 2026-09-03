@@ -254,6 +254,9 @@ local Config = {
 				List = {
 					"dinky fishing boat",
 					"raft",
+					"collosal pirate ship",
+					"santa sled",
+					"christmas car",
 					"coral boat",
 					"retro utility boat",
 					"banana pirate raft",
