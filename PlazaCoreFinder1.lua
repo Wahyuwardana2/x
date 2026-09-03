@@ -340,7 +340,7 @@ Price = {
 
 RAP = {
 		Enabled = true,
-		Min = 300,
+		Min = 1000,
 		Max = 100000,
 		Percent = nil
 
