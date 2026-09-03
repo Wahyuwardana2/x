@@ -314,7 +314,7 @@ Percent = 1
 ["Pets"] = {
 
 
-Enabled = false,
+Enabled = true,
 
 
 Name = {
@@ -333,16 +333,16 @@ Name = {
 },
 
 Price = {
-    Enabled = true,
+    Enabled = false,
     Min = 4500,
     Max = 8000
 },
 
 RAP = {
-
-Enabled = false,
-
-Percent = 1
+		Enabled = true,
+		Min = 100,
+		Max = 100000,
+		Percent = nil
 
 }
 
