@@ -359,7 +359,7 @@ RAP = {
 Boats = {
 
 
-Enabled = true,
+Enabled = false,
 
 Name = {
 
