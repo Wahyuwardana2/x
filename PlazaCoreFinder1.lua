@@ -835,34 +835,39 @@ local function CheckRAP(item)
     -- UNDER RAP PERCENT
     --==============================--
 
-    local percent = cfg.Percent or 0
+    if cfg.Percent ~= nil then
 
-    local limit =
-        rap * (100 - percent) / 100
+        local percent = tonumber(cfg.Percent) or 0
 
-    if item.Price > limit then
+        local limit =
+            rap * (100 - percent) / 100
 
-        DebugPrint(
-            "[OVER RAP LIMIT]",
-            item.Name,
-            "PRICE:",
-            item.Price,
-            "RAP:",
-            rap,
-            "REQUIRED:",
-            percent .. "%",
-            "MAX PRICE:",
-            limit
-        )
+        if item.Price > limit then
 
-        return false
-    end
+            DebugPrint(
+                "[OVER RAP LIMIT]",
+                item.Name,
+                "PRICE:",
+                item.Price,
+                "RAP:",
+                rap,
+                "REQUIRED:",
+                percent .. "%",
+                "MAX PRICE:",
+                limit
+            )
 
-    -- Persentase aktual harga di bawah RAP
-    if rap > 0 then
-        item.UnderRap = math.floor(
-            (1 - item.Price / rap) * 100
-        )
+            return false
+        end
+
+        -- Persentase aktual harga di bawah RAP
+        if rap > 0 then
+
+            item.UnderRap = math.floor(
+                (1 - item.Price / rap) * 100
+            )
+
+        end
     end
 
     return true
