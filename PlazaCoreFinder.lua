@@ -247,7 +247,7 @@ local Config = {
 			Enabled = true,
 
 			Name = {
-				Enabled = true,
+				Enabled = false,
 				Mode = "Blacklist",
 				Match = "Exact",
 
@@ -281,6 +281,8 @@ local Config = {
 
 			RAP = {
 				Enabled = true,
+				Min = 100,
+				Max = 100000
 				Percent = 4
 			}
 		},
