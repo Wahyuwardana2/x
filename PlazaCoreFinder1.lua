@@ -359,7 +359,7 @@ RAP = {
 Boats = {
 
 
-Enabled = false,
+Enabled = true,
 
 Name = {
 
@@ -400,7 +400,8 @@ Price = {
 RAP = {
 
 Enabled = true,
-
+Min = 100,
+Max = 100000,
 Percent = 5
 
 }
