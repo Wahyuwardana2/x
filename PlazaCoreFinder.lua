@@ -123,8 +123,8 @@ local Config = {
 
 			Name = {
 				Enabled = true,
-				Mode = "Blacklist", ---
-				Match = "Exact",
+				Mode = "Blacklist",  -- Whitelist / Blacklist
+				Match = "Exact", -- Exact / Contains / StartsWith / EndsWith
 
 				List = {
 					-- "frozen rod",
@@ -241,7 +241,9 @@ local Config = {
 
 			RAP = {
 				Enabled = true,
-				Percent = 1
+				Min = 100,
+				Max = 100000,
+				Percent = 4
 			}
 		},
 
