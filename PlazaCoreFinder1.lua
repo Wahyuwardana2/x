@@ -314,7 +314,7 @@ Percent = 1
 ["Pets"] = {
 
 
-Enabled = true,
+Enabled = false,
 
 
 Name = {
