@@ -623,10 +623,12 @@ local function CheckRAP(item)
     end
 
     --==============================--
-    -- UNDER RAP PERCENT
-    --==============================--
+-- UNDER RAP PERCENT
+--==============================--
 
-    local percent = cfg.Percent or 0
+if cfg.Percent ~= nil then
+
+    local percent = cfg.Percent
 
     local limit =
         rap * (100 - percent) / 100
@@ -656,8 +658,9 @@ local function CheckRAP(item)
         )
     end
 
-    return true
 end
+
+return true
 
 
 --================================================--
