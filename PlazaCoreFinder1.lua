@@ -773,48 +773,100 @@ end
 
 local function CheckRAP(item)
 
-	local category = GetCategory(item.ItemType)
-	local cfg = category and category.RAP
+    local category = GetCategory(item.ItemType)
+    local cfg = category and category.RAP
 
-	-- Tetap ambil RAP walaupun RAP filter OFF
-	local rap = GetRAP(item.ItemType, item.Name, item)
+    -- Tetap ambil RAP walaupun RAP filter OFF
+    local rap = GetRAP(item.ItemType, item.Name, item)
 
-	if rap then
-		item.RAP = rap
-	end
+    if rap then
+        item.RAP = rap
+    end
 
-	-- RAP filter OFF:
-	-- RAP tetap ditampilkan, tetapi TIDAK digunakan untuk filter
-	if not cfg or not cfg.Enabled then
-		return true
-	end
+    -- RAP filter OFF:
+    -- RAP tetap ditampilkan, tapi tidak difilter
+    if not cfg or not cfg.Enabled then
+        return true
+    end
 
-	-- RAP filter ON
-	if not rap then
-		return true
-	end
+    -- Kalau RAP tidak ditemukan
+    -- tetap lolos seperti behavior script sebelumnya
+    if not rap then
+        return true
+    end
 
-	local percent = cfg.Percent or 1
-	local limit = rap * (100 - percent) / 100
+    --==============================--
+    -- RAP MIN
+    --==============================--
 
-	if item.Price > limit then
-		DebugPrint(
-			"[OVER RAP]",
-			item.Name,
-			item.Price,
-			rap
-		)
+    if cfg.Min and rap < cfg.Min then
 
-		return false
-	end
+        DebugPrint(
+            "[RAP TOO LOW]",
+            item.Name,
+            "RAP:",
+            rap,
+            "MIN:",
+            cfg.Min
+        )
 
-	item.UnderRap = math.floor(
-		(1 - item.Price / rap) * 100
-	)
+        return false
+    end
 
-	return true
+    --==============================--
+    -- RAP MAX
+    --==============================--
+
+    if cfg.Max and rap > cfg.Max then
+
+        DebugPrint(
+            "[RAP TOO HIGH]",
+            item.Name,
+            "RAP:",
+            rap,
+            "MAX:",
+            cfg.Max
+        )
+
+        return false
+    end
+
+    --==============================--
+    -- UNDER RAP PERCENT
+    --==============================--
+
+    local percent = cfg.Percent or 0
+
+    local limit =
+        rap * (100 - percent) / 100
+
+    if item.Price > limit then
+
+        DebugPrint(
+            "[OVER RAP LIMIT]",
+            item.Name,
+            "PRICE:",
+            item.Price,
+            "RAP:",
+            rap,
+            "REQUIRED:",
+            percent .. "%",
+            "MAX PRICE:",
+            limit
+        )
+
+        return false
+    end
+
+    -- Persentase aktual harga di bawah RAP
+    if rap > 0 then
+        item.UnderRap = math.floor(
+            (1 - item.Price / rap) * 100
+        )
+    end
+
+    return true
 end
-
 
 --================================================--
 -- CATEGORY
