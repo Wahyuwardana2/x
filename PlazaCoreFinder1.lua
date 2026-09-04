@@ -359,11 +359,11 @@ RAP = {
 Boats = {
 
 
-Enabled = false,
+Enabled = true,
 
 Name = {
 
-    Enabled = true,
+    Enabled = false,
 
     Mode = "Blacklist", -- Whitelist / Blacklist
 
@@ -400,9 +400,9 @@ Price = {
 RAP = {
 
 Enabled = true,
-Min = 100,
+Min = 1000,
 Max = 100000,
-Percent = 5
+Percent = nil
 
 }
 
