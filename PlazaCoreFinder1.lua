@@ -33,11 +33,18 @@ end)
 local Config = {
 
 	Webhook = {
-		Fish = "https://discordapp.com/api/webhooks/1530612875272654961/u2FmJrJssywDYVh-5dWguka_5fpZkyzoCbioZhS-ctNIjYTTJ-1rIppT2hDXXmdbwsnn",
-		Gears = "https://discordapp.com/api/webhooks/1530613045020069991/8gEwiqeGmaCus3ZzWYr14HVWOs5GdX0SC9Iyqevqj6fIDzOB37ozMEXUI1WxvjsbI46e",
-		["Fishing Rods"] = "https://discordapp.com/api/webhooks/1530613393306685612/1hBlQwnCzjbVdfQYR1RzfB07e64wDxBPcMCPRM1hFprZQDdHYqYZFHO82L5ZFQDi3aoq",
-		Boats = "https://discordapp.com/api/webhooks/1530613586525815027/osI8YKDYkl_bwCCVT4S6-W-bblZMZ9gTRLhVfLseGuxWIAwz2EN1vpNz1Jl1IisVlPDX",
-		Pets = "https://discordapp.com/api/webhooks/1531668953816891493/myibJmPBQBA_0W3dICiFklJxX_h8ZUyawZVge1cZR9T2UlvLqgU1Mj7mK7e3VkZBL8Lx"
+		Fish = "https://discordapp.com/api/webhooks/1545775285440352358/s6SeBi5VGOPZoB17ROgTJkjPNIFzrR3a_8JrvXWG90BjKm7VKz8n_emzeGlAO2P0ncoQ",
+		Gears = "https://discordapp.com/api/webhooks/1545775362456166501/5kOD6cnUdl4qT382jF0Brva_X5wBhBFN24A3zwjzFaPSNJqDLPS9drZmLY6noASFtNml",
+		["Fishing Rods"] = "https://discordapp.com/api/webhooks/1545775680032084009/9Mn30_SDOcLLt3boKd15ufSPUCKum2nuMMDJH9D_ZGTpmhWmwnGNsnXd504mXETzHqDS",
+		Boats = "https://discordapp.com/api/webhooks/1545775796814086237/UYgAEeiAcCXiuYQeaoJXBrT7l_GB-sjogmxgORcBQ-sf25cG7kpCJ132XCZZSmBh791b",
+		Pets = "https://discordapp.com/api/webhooks/1545775864476868640/UKY5zc8FNK8qcHC6wmM_7xBlgRR0sCHMoYrPPqKh-CrYTjgSaCvy63mt2cAOaWqEbEBZ"
+
+		
+		-- Fish = "https://discordapp.com/api/webhooks/1530612875272654961/u2FmJrJssywDYVh-5dWguka_5fpZkyzoCbioZhS-ctNIjYTTJ-1rIppT2hDXXmdbwsnn",
+		-- Gears = "https://discordapp.com/api/webhooks/1545702465297449053/Chshx2Ate62mesZfZKsZ6ldGp8XcbWekE4yj1ZzkCSmAIEdCH8XRsOgeT7OoHigaxRYN",
+		-- ["Fishing Rods"] = "https://discordapp.com/api/webhooks/1530613393306685612/1hBlQwnCzjbVdfQYR1RzfB07e64wDxBPcMCPRM1hFprZQDdHYqYZFHO82L5ZFQDi3aoq",
+		-- Boats = "https://discordapp.com/api/webhooks/1530613586525815027/osI8YKDYkl_bwCCVT4S6-W-bblZMZ9gTRLhVfLseGuxWIAwz2EN1vpNz1Jl1IisVlPDX",
+		-- Pets = "https://discordapp.com/api/webhooks/1531668953816891493/myibJmPBQBA_0W3dICiFklJxX_h8ZUyawZVge1cZR9T2UlvLqgU1Mj7mK7e3VkZBL8Lx"
 	},
 
 	Debug = true,
