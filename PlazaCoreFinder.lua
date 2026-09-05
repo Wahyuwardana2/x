@@ -59,8 +59,8 @@ local Config = {
 					-- "megalodon",
 					"stormshell brute",
 					"wintertusk mammofin",
-					"overlord hydra",
-					"elemental hydra"
+					-- "overlord hydra",
+					-- "elemental hydra"
 				}
 			},
 
