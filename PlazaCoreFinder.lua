@@ -64,7 +64,7 @@ local Config = {
 				List = {
 					"pyrocoil",
 					-- "megalodon",
-					"stormshell brute",
+					-- "stormshell brute",
 					"wintertusk mammofin",
 					-- "overlord hydra",
 					-- "elemental hydra"
@@ -87,7 +87,7 @@ local Config = {
 
 			RAP = {
 				Enabled = true,
-				Percent = 20
+				Percent = 10
 			}
 		},
 
