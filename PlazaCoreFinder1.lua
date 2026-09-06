@@ -517,7 +517,7 @@ Percent = 1
 ["Enchant Stones"] = {
 
 
-Enabled = false,
+Enabled = true,
 
 
 Name = {
@@ -526,11 +526,11 @@ Name = {
 
     Mode = "Whitelist", -- Whitelist / Blacklist
 
-    Match = "Contains", -- Exact / Contains / StartsWith / EndsWith
+    Match = "Exact", -- Exact / Contains / StartsWith / EndsWith
 
     List = {
-			"Runic",
-			"Eggy"
+			"Runic Enchant Stone",
+			"Eggy Enchant Stone"
 
     }
 
