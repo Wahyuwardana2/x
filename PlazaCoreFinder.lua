@@ -49,7 +49,7 @@ local Config = {
 
 	Debug = true,
 	LoadDelay = 2,
-	StayTime = 15,
+	StayTime = 20,
 
 	Items = {
 
