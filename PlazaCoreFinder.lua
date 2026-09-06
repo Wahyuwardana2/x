@@ -97,10 +97,10 @@ local Config = {
 			Name = {
 				Enabled = true,
 				Mode = "Whitelist",
-				Match = "Exact",
+				Match = "Contains",
 				List = {
-					"Withering Core",
-					"Tribunal Withering Core"
+					"Withering Core"
+					-- "Tribunal Withering Core"
 				}
 			},
 
