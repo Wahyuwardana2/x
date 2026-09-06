@@ -529,15 +529,15 @@ Name = {
     Match = "Exact", -- Exact / Contains / StartsWith / EndsWith
 
     List = {
-			"Runic Enchant Stones",
-			"Eggy Enchant Stones"
+			"Runic Enchant Stone",
+			"Eggy Enchant Stone"
 
     }
 
 },
 
 Price = {
-    Enabled = true,
+    Enabled = false,
     Min = 1,
     Max = 100
 },
