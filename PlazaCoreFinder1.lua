@@ -132,11 +132,11 @@ Name = {
 
     Mode = "Whitelist", -- Whitelist / Blacklist
 
-    Match = "Exact", -- Exact / Contains / StartsWith / EndsWith
+    Match = "Contains", -- Exact / Contains / StartsWith / EndsWith
 
     List = {
 			"Withering Core",
-			"Tribunal Withering Core"
+			-- "Tribunal Withering Core"
 	}
 
 },
