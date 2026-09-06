@@ -544,7 +544,7 @@ Price = {
 
 RAP = {
 
-Enabled = true,
+Enabled = false,
 
 Percent = 5
 
