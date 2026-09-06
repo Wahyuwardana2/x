@@ -373,7 +373,7 @@ local Config = {
 	},
 
 	Server = {
-		AutoHop = false,
+		AutoHop = true,
 		MinPlayer = 1,
 		MaxPlayer = 20,
 		HopDelay = 1
