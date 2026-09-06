@@ -43,7 +43,7 @@ local Config = {
 		Fish = "https://discordapp.com/api/webhooks/1530612875272654961/u2FmJrJssywDYVh-5dWguka_5fpZkyzoCbioZhS-ctNIjYTTJ-1rIppT2hDXXmdbwsnn",
 		Gears = "https://discordapp.com/api/webhooks/1545702465297449053/Chshx2Ate62mesZfZKsZ6ldGp8XcbWekE4yj1ZzkCSmAIEdCH8XRsOgeT7OoHigaxRYN",
 		["Fishing Rods"] = "https://discordapp.com/api/webhooks/1530613393306685612/1hBlQwnCzjbVdfQYR1RzfB07e64wDxBPcMCPRM1hFprZQDdHYqYZFHO82L5ZFQDi3aoq",
-		["Enchant Stones" = "https://discordapp.com/api/webhooks/1546154721457344613/v8jLwqMknv3qteBM5LKNxV1mbf9qsgRQ8g2_t52sALJw38oOS083RfkrkTpT51runlPi",
+		["Enchant Stones"] = "https://discordapp.com/api/webhooks/1546154721457344613/v8jLwqMknv3qteBM5LKNxV1mbf9qsgRQ8g2_t52sALJw38oOS083RfkrkTpT51runlPi",
 		Boats = "https://discordapp.com/api/webhooks/1530613586525815027/osI8YKDYkl_bwCCVT4S6-W-bblZMZ9gTRLhVfLseGuxWIAwz2EN1vpNz1Jl1IisVlPDX",
 		Pets = "https://discordapp.com/api/webhooks/1531668953816891493/myibJmPBQBA_0W3dICiFklJxX_h8ZUyawZVge1cZR9T2UlvLqgU1Mj7mK7e3VkZBL8Lx"
 	},
