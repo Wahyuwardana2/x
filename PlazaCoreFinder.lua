@@ -48,8 +48,8 @@ local Config = {
 	},
 
 	Debug = true,
-	LoadDelay = 2,
-	StayTime = 20,
+	LoadDelay = 1,
+	StayTime = 10,
 
 	Items = {
 
