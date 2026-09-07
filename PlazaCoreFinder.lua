@@ -14,7 +14,7 @@ local PlaceId = game.PlaceId
 -- EXTERNAL
 --================================================--
 
-local ExternalConfig = ...
+return function(ExternalConfig)
 
 if type(ExternalConfig) ~= "table" then
 	ExternalConfig = {}
@@ -2386,3 +2386,5 @@ task.spawn(
 print(
 	"🎣 PLAZA SCANNER FISHIT READY"
 )
+
+end
