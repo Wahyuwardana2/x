@@ -1,6 +1,5 @@
 --================================================--
 -- PLAZA SCANNER
--- CORE + CONFIG + RAP + FILTER + SCANNER + HOP
 --================================================--
 
 local Players = game:GetService("Players")
@@ -12,8 +11,15 @@ local LocalPlayer = Players.LocalPlayer
 local PlaceId = game.PlaceId
 
 --================================================--
--- RAP CONTROLLER
+-- EXTERNAL
 --================================================--
+
+local ExternalConfig = ...
+
+if type(ExternalConfig) ~= "table" then
+	ExternalConfig = {}
+end
+
 
 local RAPController
 
@@ -32,540 +38,519 @@ end)
 
 local Config = {
 
-	Webhook = {
-		-- Fish = "https://discordapp.com/api/webhooks/1545775285440352358/s6SeBi5VGOPZoB17ROgTJkjPNIFzrR3a_8JrvXWG90BjKm7VKz8n_emzeGlAO2P0ncoQ",
-		-- Gears = "https://discordapp.com/api/webhooks/1545775362456166501/5kOD6cnUdl4qT382jF0Brva_X5wBhBFN24A3zwjzFaPSNJqDLPS9drZmLY6noASFtNml",
-		-- ["Fishing Rods"] = "https://discordapp.com/api/webhooks/1545775680032084009/9Mn30_SDOcLLt3boKd15ufSPUCKum2nuMMDJH9D_ZGTpmhWmwnGNsnXd504mXETzHqDS",
-		-- Boats = "https://discordapp.com/api/webhooks/1545775796814086237/UYgAEeiAcCXiuYQeaoJXBrT7l_GB-sjogmxgORcBQ-sf25cG7kpCJ132XCZZSmBh791b",
-		-- Pets = "https://discordapp.com/api/webhooks/1545775864476868640/UKY5zc8FNK8qcHC6wmM_7xBlgRR0sCHMoYrPPqKh-CrYTjgSaCvy63mt2cAOaWqEbEBZ"
+	--================================================--
+	-- WEBHOOK
+	-- DIISI DARI EXECUTOR
+	--================================================--
 
-		
-		Fish = "https://discordapp.com/api/webhooks/1530612875272654961/u2FmJrJssywDYVh-5dWguka_5fpZkyzoCbioZhS-ctNIjYTTJ-1rIppT2hDXXmdbwsnn",
-		Gears = "https://discordapp.com/api/webhooks/1530613045020069991/8gEwiqeGmaCus3ZzWYr14HVWOs5GdX0SC9Iyqevqj6fIDzOB37ozMEXUI1WxvjsbI46e",
-		["Fishing Rods"] = "https://discordapp.com/api/webhooks/1530613393306685612/1hBlQwnCzjbVdfQYR1RzfB07e64wDxBPcMCPRM1hFprZQDdHYqYZFHO82L5ZFQDi3aoq",
-		["Enchant Stones"] = "https://discordapp.com/api/webhooks/1546154721457344613/v8jLwqMknv3qteBM5LKNxV1mbf9qsgRQ8g2_t52sALJw38oOS083RfkrkTpT51runlPi",
-		Boats = "https://discordapp.com/api/webhooks/1530613586525815027/osI8YKDYkl_bwCCVT4S6-W-bblZMZ9gTRLhVfLseGuxWIAwz2EN1vpNz1Jl1IisVlPDX",
-		Pets = "https://discordapp.com/api/webhooks/1531668953816891493/myibJmPBQBA_0W3dICiFklJxX_h8ZUyawZVge1cZR9T2UlvLqgU1Mj7mK7e3VkZBL8Lx"
-	},
+	Webhook = {},
 
 	Debug = true,
 	LoadDelay = 1,
 	StayTime = 10,
 
+	--================================================--
+	-- ITEMS
+	--================================================--
+
 	Items = {
 
+    ------------------------------------------------
+    -- FISH
+    ------------------------------------------------
 
-------------------------------------------------
--- FISH
-------------------------------------------------
+    Fish = {
 
-Fish = {
+        Enabled = true,
 
-Enabled = true,
+        Name = {
 
+            Enabled = true,
 
-Name = {
+            Mode = "Whitelist", -- Whitelist / Blacklist
 
-    Enabled = true,
+            Match = "Exact", -- Exact / Contains / StartsWith / EndsWith
 
-    Mode = "Whitelist", -- Whitelist / Blacklist
+            List = {
+                "megalodon",
+                -- "stormshell brute",
+                -- "wintertusk mammofin"
+                -- "overlord hydra",
+                -- "elemental hydra"
+            }
 
-    Match = "Exact", -- Exact / Contains / StartsWith / EndsWith
+        },
 
-    List = {
-    "megalodon",
-    -- "stormshell brute",
-    -- "wintertusk mammofin"
-	-- "overlord hydra",
-	-- "elemental hydra"
-    }
+        Mutation = {
 
-},
+            Enabled = true,
+            Require = true, -- true = wajib ada mutation, false = normal boleh
 
+            Mode = "Blacklist",
+            Match = "Exact",
 
-Mutation = {
+            List = {
+                "Shiny"
+            }
 
-Enabled = true,
-Require = true,  -- true = wajib ada mutation, false = normal boleh
+        },
 
-Mode = "Blacklist",
-Match = "Exact",
-List = {
+        Price = {
+            Enabled = true,
+            Min = 1,
+            Max = 200
+        },
 
-"Shiny"
+        RAP = {
+            Enabled = false,
+            Percent = 1
+        }
 
-}
+    },
 
-},
 
-Price = {
-    Enabled = true,
-    Min = 1,
-    Max = 200
-},
+    ------------------------------------------------
+    -- GEARS
+    ------------------------------------------------
 
-RAP = {
+    Gears = {
 
-Enabled = false,
+        Enabled = true,
 
-Percent = 1
+        Name = {
 
-}
+            Enabled = true,
 
+            Mode = "Whitelist", -- Whitelist / Blacklist
 
-},
+            Match = "Contains", -- Exact / Contains / StartsWith / EndsWith
 
+            List = {
+                "Withering Core",
+                -- "Tribunal Withering Core"
+            }
+
+        },
+
+        Mutation = {
+
+            Enabled = true,
+            Require = true, -- true = wajib ada mutation, false = normal boleh
+
+            Mode = "Blacklist",
+            Match = "Exact",
+
+            List = {
+                "ghost",
+                "stone",
+                "albino",
+                "sandy"
+            }
+
+        },
+
+        Price = {
+            Enabled = false,
+            Min = 1,
+            Max = 30
+        },
+
+        RAP = {
+            Enabled = false,
+            Percent = 1
+        }
+
+    },
+
+
+    ------------------------------------------------
+    -- FISHING RODS
+    ------------------------------------------------
+
+    ["Fishing Rods"] = {
+
+        Enabled = false,
+
+        Name = {
+
+            Enabled = true,
+
+            Mode = "Whitelist", -- Whitelist / Blacklist
+
+            Match = "Exact", -- Exact / Contains / StartsWith / EndsWith
+
+            List = {
+                "gold rod",
+                "hyper rod",
+                "ghoul rod",
+                "crystalized",
+                "abyssal chroma",
+                "jelly",
+                "galactic",
+                "enlightened",
+                "cursed soul",
+                "continuum",
+                "holy trident",
+                "electric guitar",
+                "element rod",
+                "oceanic harpoon",
+                "soul scythe",
+                "undead guitar",
+                "divine blade",
+                "heartfelt blade",
+                "eclipse katana",
+                "princess parasol",
+                "corruption edge",
+                "1x1x1x1 ban hammer",
+                "binary edge",
+                "the vanquisher",
+                "dragon spirit",
+                "frozen krampus scythe",
+                "candy cane trident",
+                "gingerbread katana",
+                "christmas parasol",
+                "diamond rod",
+                "eternal flower",
+                "blackhole sword",
+                "kraken anchor",
+                "ethereal sword",
+                "chromatic katana",
+                "crescendo scythe",
+                "aether monarch",
+                "cupid's harp",
+                "aurelian bow",
+                "kitty guitar",
+                "dark matter scythe",
+                "crimson retribution",
+                "kitsune greatsword",
+                "celestial scythe",
+                "serpent's trident",
+                "absolute divinity",
+                "draconic soul",
+                "divine staff",
+                "easter parasol",
+                "bunny summoner",
+                "fallen staff",
+                "golden clockwork",
+                "empyrean staff",
+                "void guitar",
+                "cloud weaver",
+                "overdrive",
+                "blossom guitar",
+                "butterfly sword",
+                "galaxy conqueror",
+                "blossom conqueror",
+                "world tour football",
+                "dragonmaster scythe",
+                "sunshine cello",
+                "intergalactic sniper",
+                "starweaver's globe",
+                "silverweaver's globe",
+                "blossom kunai",
+                "shiro kunai",
+                "frosted guitar",
+                "oceanic trident",
+                "wings of everlove",
+                "spirit staff",
+                "pirate banjo",
+                "reaver scyte",
+                "void kraken",
+                "voidpunk axe"
+
+                -- "Spirit Staff"
+                -- "cinderflare",
+                -- "ducky paradise",
+                -- "eerie stormwake",
+                -- "featerfall",
+                -- "forsaken",
+                -- "lantern",
+                -- "pinata",
+                -- "candy cane rod",
+                -- "constellatio",
+                -- "blossom conqueror",
+                -- "galaxy conqueror",
+                -- "queen kraken",
+                -- "abyssfire",
+                -- "soulreaver",
+                -- "pirate octopus",
+                -- "crowned Hacker",
+                -- "blazing fire",
+                -- "dark seahorse"
+            }
+
+        },
+
+        Price = {
+            Enabled = false,
+            Min = 1,
+            Max = 100
+        },
+
+        RAP = {
+
+            Enabled = true,
+            Percent = 1
+
+        }
+
+    },
+
+
+    ------------------------------------------------
+    -- PETS
+    ------------------------------------------------
+
+    ["Pets"] = {
+
+        Enabled = true,
+
+        Name = {
+
+            Enabled = false,
+
+            Mode = "Whitelist", -- Whitelist / Blacklist
+
+            Match = "Contains", -- Exact / Contains / StartsWith / EndsWith
+
+            List = {
+                "Stellar Hedgehog"
+            }
+
+        },
+
+        Price = {
+            Enabled = false,
+            Min = 4500,
+            Max = 8000
+        },
+
+        RAP = {
+            Enabled = true,
+            Min = 1000,
+            Max = 100000,
+            Percent = nil
+        }
+
+    },
+
+
+    ------------------------------------------------
+    -- BOATS
+    ------------------------------------------------
+
+    Boats = {
+
+        Enabled = true,
+
+        Name = {
+
+            Enabled = false,
+
+            Mode = "Blacklist", -- Whitelist / Blacklist
+
+            Match = "Exact", -- Exact / Contains / StartsWith / EndsWith
+
+            List = {
+                "dinky fishing boat",
+                "raft",
+                "coral boat",
+                "retro utility boat",
+                "banana pirate raft",
+                "classic ducky boat",
+                "santa sled",
+                "swan boat",
+                "pumpkin boat",
+                "christmas car",
+                "ancient ship",
+                "retro car boat",
+                "ferryman boat",
+                "superstar boat",
+                "undersea racer"
+            }
 
+        },
 
-------------------------------------------------
--- GEARS
-------------------------------------------------
+        Price = {
+            Enabled = false,
+            Min = 1,
+            Max = 100
+        },
 
-Gears = {
+        RAP = {
 
-Enabled = true,
+            Enabled = true,
+            Min = 1000,
+            Max = 100000,
+            Percent = nil
 
+        }
 
-Name = {
+    },
 
-    Enabled = true,
 
-    Mode = "Whitelist", -- Whitelist / Blacklist
+    ------------------------------------------------
+    -- EQUIPMENT
+    ------------------------------------------------
 
-    Match = "Contains", -- Exact / Contains / StartsWith / EndsWith
+    Equipment = {
 
-    List = {
-			"Withering Core",
-			-- "Tribunal Withering Core"
-	}
+        Enabled = false,
 
-},
+        Name = {
 
-Mutation = {
+            Enabled = true,
 
-Enabled = true,
-Require = true, -- true = wajib ada mutation, false = normal boleh
-Mode = "Blacklist",
-Match = "Exact",
-List = {
+            Mode = "Whitelist", -- Whitelist / Blacklist
 
-"ghost",
-"stone",
-"albino",
-"sandy"
+            Match = "Exact", -- Exact / Contains / StartsWith / EndsWith
 
-}
-
-},
-
-
-Price = {
-    Enabled = false,
-    Min = 1,
-    Max = 30
-},
-
-RAP = {
-
-Enabled = false,
-
-Percent = 1
-
-}
-
-
-},
-
-
-
-------------------------------------------------
--- FISHING RODS
-------------------------------------------------
-
-["Fishing Rods"] = {
-
-
-Enabled = false,
-
-
-Name = {
-
-    Enabled = true,
-
-    Mode = "Whitelist", -- Whitelist / Blacklist
-
-    Match = "Exact", -- Exact / Contains / StartsWith / EndsWith
-
-    List = {
-    "gold rod",
-    "hyper rod",
-    "ghoul rod",
-    "crystalized",
-    "abyssal chroma",
-    "jelly",
-    "galactic",
-    "enlightened",
-    "cursed soul",
-    "continuum",
-    "holy trident",
-    "electric guitar",
-    "element rod",
-    "oceanic harpoon",
-    "soul scythe",
-    "undead guitar",
-    "divine blade",
-    "heartfelt blade",
-    "eclipse katana",
-    "princess parasol",
-    "corruption edge",
-    "1x1x1x1 ban hammer",
-    "binary edge",
-    "the vanquisher",
-    "dragon spirit",
-    "frozen krampus scythe",
-    "candy cane trident",
-    "gingerbread katana",
-    "christmas parasol",
-    "diamond rod",
-    "eternal flower",
-    "blackhole sword",
-    "kraken anchor",
-    "ethereal sword",
-    "chromatic katana",
-    "crescendo scythe",
-    "aether monarch",
-    "cupid's harp",
-    "aurelian bow",
-    "kitty guitar",
-    "dark matter scythe",
-    "crimson retribution",
-    "kitsune greatsword",
-    "celestial scythe",
-    "serpent's trident",
-    "absolute divinity",
-    "draconic soul",
-    "divine staff",
-    "easter parasol",
-    "bunny summoner",
-    "fallen staff",
-    "golden clockwork",
-    "empyrean staff",
-    "void guitar",
-    "cloud weaver",
-    "overdrive",
-    "blossom guitar",
-    "butterfly sword",
-    "galaxy conqueror",
-    "blossom conqueror",
-    "world tour football",
-    "dragonmaster scythe",
-    "sunshine cello",
-    "intergalactic sniper",
-    "starweaver's globe",
-    "silverweaver's globe",
-    "blossom kunai",
-    "shiro kunai",
-    "frosted guitar",
-    "oceanic trident",
-    "wings of everlove",
-    "spirit staff",
-    "pirate banjo",
-    "reaver scyte",
-    "void kraken",
-    "voidpunk axe"
-    -- "Spirit Staff"
-    -- "cinderflare",
-    -- "ducky paradise",
-    -- "eerie stormwake",
-    -- "featerfall",
-    -- "forsaken",
-    -- "lantern",
-    -- "pinata",
-    -- "candy cane rod",
-    -- "constellatio",
-    -- "blossom conqueror",
-    -- "galaxy conqueror",
-    -- "queen kraken",
-    -- "abyssfire",
-    -- "soulreaver",
-    -- "pirate octopus",
-    -- "crowned Hacker",
-    -- "blazing fire",
-    -- "dark seahorse"
+            List = {
 
-}
+            }
 
-},
+        },
 
-Price = {
-    Enabled = false,
-    Min = 1,
-    Max = 100
-},
+        Price = {
+            Enabled = true,
+            Min = 1,
+            Max = 100
+        },
 
-RAP = {
+        RAP = {
 
-Enabled = true,
+            Enabled = false,
+            Percent = 1
 
-Percent = 1
+        }
 
-}
+    },
 
 
-},
+    ------------------------------------------------
+    -- TROPHIES
+    ------------------------------------------------
 
+    Trophies = {
 
-------------------------------------------------
--- Pets
-------------------------------------------------
+        Enabled = false,
 
-["Pets"] = {
+        Name = {
 
+            Enabled = true,
 
-Enabled = true,
+            Mode = "Whitelist", -- Whitelist / Blacklist
 
+            Match = "Exact", -- Exact / Contains / StartsWith / EndsWith
 
-Name = {
+            List = {
 
-    Enabled = false,
+            }
 
-    Mode = "Whitelist", -- Whitelist / Blacklist
+        },
 
-    Match = "Contains", -- Exact / Contains / StartsWith / EndsWith
+        Price = {
+            Enabled = true,
+            Min = 1,
+            Max = 100
+        },
 
-    List = {
-    "Stellar Hedgehog"
+        RAP = {
 
-    }
+            Enabled = false,
+            Percent = 1
 
-},
+        }
 
-Price = {
-    Enabled = false,
-    Min = 4500,
-    Max = 8000
-},
+    },
 
-RAP = {
-		Enabled = true,
-		Min = 1000,
-		Max = 100000,
-		Percent = nil
 
-}
+    ------------------------------------------------
+    -- ENCHANT
+    ------------------------------------------------
 
+    ["Enchant Stones"] = {
 
-},
+        Enabled = true,
 
+        Name = {
 
+            Enabled = true,
 
+            Mode = "Whitelist", -- Whitelist / Blacklist
 
-------------------------------------------------
--- BOATS
-------------------------------------------------
+            Match = "Exact", -- Exact / Contains / StartsWith / EndsWith
 
-Boats = {
+            List = {
+                "Runic Enchant Stone",
+                "Eggy Enchant Stone"
+            }
 
+        },
 
-Enabled = true,
+        Price = {
+            Enabled = false,
+            Min = 1,
+            Max = 100
+        },
 
-Name = {
+        RAP = {
 
-    Enabled = false,
+            Enabled = true,
+            Percent = 2
 
-    Mode = "Blacklist", -- Whitelist / Blacklist
-
-    Match = "Exact", -- Exact / Contains / StartsWith / EndsWith
-
-    List = {
-
-    "dinky fishing boat",
-    "raft",
-    "coral boat",
-    "retro utility boat",
-    "banana pirate raft",
-    "classic ducky boat",
-    "santa sled",
-    "swan boat",
-    "pumpkin boat",
-    "christmas car",
-    "ancient ship",
-    "retro car boat",
-    "ferryman boat",
-    "superstar boat",
-    "undersea racer"
-
-}
-
-},
-
-Price = {
-    Enabled = false,
-    Min = 1,
-    Max = 100
-},
-
-RAP = {
-
-Enabled = true,
-Min = 1000,
-Max = 100000,
-Percent = nil
-
-}
-
-
-},
-
-
-
-
-
-------------------------------------------------
--- EQUIPMENT
-------------------------------------------------
-
-Equipment = {
-
-
-Enabled = false,
-
-Name = {
-
-    Enabled = true,
-
-    Mode = "Whitelist", -- Whitelist / Blacklist
-
-    Match = "Exact", -- Exact / Contains / StartsWith / EndsWith
-
-    List = {
-
-    }
-
-},
-
-Price = {
-    Enabled = true,
-    Min = 1,
-    Max = 100
-},
-
-RAP = {
-
-Enabled = false,
-
-Percent = 1
-
-}
-
-
-},
-
-
-
-
-
-------------------------------------------------
--- TROPHIES
-------------------------------------------------
-
-Trophies = {
-
-
-Enabled = false,
-
-
-Name = {
-
-    Enabled = true,
-
-    Mode = "Whitelist", -- Whitelist / Blacklist
-
-    Match = "Exact", -- Exact / Contains / StartsWith / EndsWith
-
-    List = {
-
-    }
-
-},
-
-Price = {
-    Enabled = true,
-    Min = 1,
-    Max = 100
-},
-
-RAP = {
-
-Enabled = false,
-
-Percent = 1
-
-}
-
-
-},
-
-
-
-
-
-------------------------------------------------
--- ENCHANT
-------------------------------------------------
-
-["Enchant Stones"] = {
-
-
-Enabled = true,
-
-
-Name = {
-
-    Enabled = true,
-
-    Mode = "Whitelist", -- Whitelist / Blacklist
-
-    Match = "Exact", -- Exact / Contains / StartsWith / EndsWith
-
-    List = {
-			"Runic Enchant Stone",
-			"Eggy Enchant Stone"
+        }
 
     }
 
 },
-
-Price = {
-    Enabled = false,
-    Min = 1,
-    Max = 100
-},
-
-RAP = {
-
-Enabled = true,
-
-Percent = 2
-
-}
-
-
-}
-
-
-
-},
-
-
+	--================================================--
+	-- SERVER
+	--================================================--
 
 	Server = {
-		AutoHop = false,
+		AutoHop = true,
 		MinPlayer = 1,
 		MaxPlayer = 20,
 		HopDelay = 1
 	}
 }
+
+--================================================--
+-- APPLY EXTERNAL CONFIG
+--================================================--
+
+if type(ExternalConfig.Webhook) == "table" then
+	Config.Webhook = ExternalConfig.Webhook
+end
+
+--================================================--
+-- OPTIONAL OVERRIDE
+--================================================--
+
+-- Kalau nanti mau seluruh config bisa dikirim
+-- dari executor, bagian ini bisa digunakan.
+
+if type(ExternalConfig.Debug) == "boolean" then
+	Config.Debug = ExternalConfig.Debug
+end
+
+if tonumber(ExternalConfig.LoadDelay) then
+	Config.LoadDelay = ExternalConfig.LoadDelay
+end
+
+if tonumber(ExternalConfig.StayTime) then
+	Config.StayTime = ExternalConfig.StayTime
+end
+
+if type(ExternalConfig.Items) == "table" then
+	Config.Items = ExternalConfig.Items
+end
+
+if type(ExternalConfig.Server) == "table" then
+	for key, value in pairs(ExternalConfig.Server) do
+		Config.Server[key] = value
+	end
+end
 
 --================================================--
 -- STATE
@@ -597,13 +582,10 @@ local function Clean(value)
 
 	local text = tostring(value)
 
-	-- lowercase
 	text = text:lower()
 
-	-- ubah whitespace berulang menjadi satu spasi
 	text = text:gsub("%s+", " ")
 
-	-- hapus spasi awal
 	text = text:match("^%s*(.-)%s*$")
 
 	return text
@@ -618,7 +600,19 @@ local function GetCategory(itemType)
 end
 
 local function GetWebhook(itemType)
-	return Config.Webhook[itemType]
+
+	local webhook =
+		Config.Webhook[itemType]
+
+	if type(webhook) ~= "string" then
+		return nil
+	end
+
+	if webhook == "" then
+		return nil
+	end
+
+	return webhook
 end
 
 --================================================--
@@ -640,7 +634,8 @@ end
 
 local function CleanRAPName(name)
 
-	local result = tostring(name or "")
+	local result =
+		tostring(name or "")
 
 	for _, prefix in ipairs({
 		"Big Shiny ",
@@ -662,46 +657,57 @@ end
 -- RAP
 --================================================--
 
-local function GetRAP(itemType, itemName, item)
+local function GetRAP(
+	itemType,
+	itemName,
+	item
+)
 
 	if not RAPController then
-		print("[RAP] CONTROLLER NIL")
+
+		print(
+			"[RAP] CONTROLLER NIL"
+		)
+
 		return nil
 	end
 
-	local ok, rap = pcall(function()
+	local ok, rap =
+		pcall(function()
 
-		if itemType == "Pets" and item.ItemId then
+			if itemType == "Pets"
+				and item.ItemId
+			then
 
-			return RAPController:GetRAP(
-				"Pets",
-				item.ItemId
-			)
-
-		end
-
-		if item.ItemId then
-
-			local result =
-				RAPController:GetRAP(
-					itemType,
+				return RAPController:GetRAP(
+					"Pets",
 					item.ItemId
 				)
 
-			if result then
-				return result
 			end
 
-		end
+			if item.ItemId then
 
-		return RAPController:GetRAP(
-			itemType,
-			CleanRAPName(
-				item.BaseName or itemName
+				local result =
+					RAPController:GetRAP(
+						itemType,
+						item.ItemId
+					)
+
+				if result then
+					return result
+				end
+
+			end
+
+			return RAPController:GetRAP(
+				itemType,
+				CleanRAPName(
+					item.BaseName or itemName
+				)
 			)
-		)
 
-	end)
+		end)
 
 	print(
 		"[RAP FINAL]",
@@ -719,16 +725,19 @@ end
 -- NAME FILTER
 --================================================--
 
-local function CheckFilter(value, cfg)
+local function CheckFilter(
+	value,
+	cfg
+)
 
-	if not cfg or not cfg.Enabled then
+	if not cfg
+		or not cfg.Enabled
+	then
 		return true
 	end
 
 	if #(cfg.List or {}) == 0 then
 
-		-- Whitelist kosong = tidak ada yang lolos
-		-- Blacklist kosong = semua lolos
 		if cfg.Mode == "Whitelist" then
 			return false
 		end
@@ -748,7 +757,8 @@ local function CheckFilter(value, cfg)
 
 			if cfg.Match == "Exact" then
 
-				found = value == text
+				found =
+					value == text
 
 			elseif cfg.Match == "Contains" then
 
@@ -773,8 +783,8 @@ local function CheckFilter(value, cfg)
 					value:sub(
 						-#text
 					) == text
-			end
 
+			end
 		end
 
 		if found then
@@ -798,26 +808,37 @@ end
 -- MUTATION FILTER
 --================================================--
 
-local function CheckMutation(mutation, cfg)
+local function CheckMutation(
+	mutation,
+	cfg
+)
 
-	if not cfg or not cfg.Enabled then
+	if not cfg
+		or not cfg.Enabled
+	then
 		return true
 	end
 
 	mutation = Clean(mutation)
 
-	if cfg.Require and (
-		mutation == ""
-		or mutation == "normal"
-		or mutation == "nill"
-	) then
+	if cfg.Require
+		and (
+			mutation == ""
+			or mutation == "normal"
+			or mutation == "nill"
+		)
+	then
 
 		return false
 	end
 
-	for _, bad in ipairs(cfg.List or {}) do
+	for _, bad in ipairs(
+		cfg.List or {}
+	) do
 
-		local target = Clean(bad)
+		local target =
+			Clean(bad)
+
 		local matched = false
 
 		if cfg.Match == "Exact" then
@@ -880,16 +901,21 @@ local function CheckPrice(item)
 		GetCategory(item.ItemType)
 
 	local cfg =
-		category and category.Price
+		category
+		and category.Price
 
-	if not cfg or not cfg.Enabled then
+	if not cfg
+		or not cfg.Enabled
+	then
 		return true
 	end
 
 	local price =
 		tonumber(item.Price) or 0
 
-	if cfg.Min and price < cfg.Min then
+	if cfg.Min
+		and price < cfg.Min
+	then
 
 		DebugPrint(
 			"[PRICE TOO LOW]",
@@ -900,7 +926,9 @@ local function CheckPrice(item)
 		return false
 	end
 
-	if cfg.Max and price > cfg.Max then
+	if cfg.Max
+		and price > cfg.Max
+	then
 
 		DebugPrint(
 			"[PRICE TOO HIGH]",
@@ -924,7 +952,8 @@ local function CheckRAP(item)
 		GetCategory(item.ItemType)
 
 	local cfg =
-		category and category.RAP
+		category
+		and category.RAP
 
 	-- Tetap ambil RAP walaupun filter OFF
 	local rap =
@@ -938,8 +967,10 @@ local function CheckRAP(item)
 		item.RAP = rap
 	end
 
-	-- RAP OFF = hanya tidak memfilter
-	if not cfg or not cfg.Enabled then
+	-- RAP OFF = tidak memfilter
+	if not cfg
+		or not cfg.Enabled
+	then
 		return true
 	end
 
@@ -952,7 +983,9 @@ local function CheckRAP(item)
 	-- RAP MIN
 	--================================================--
 
-	if cfg.Min and rap < cfg.Min then
+	if cfg.Min
+		and rap < cfg.Min
+	then
 
 		DebugPrint(
 			"[RAP TOO LOW]",
@@ -970,7 +1003,9 @@ local function CheckRAP(item)
 	-- RAP MAX
 	--================================================--
 
-	if cfg.Max and rap > cfg.Max then
+	if cfg.Max
+		and rap > cfg.Max
+	then
 
 		DebugPrint(
 			"[RAP TOO HIGH]",
@@ -994,7 +1029,9 @@ local function CheckRAP(item)
 			tonumber(cfg.Percent) or 0
 
 		local limit =
-			rap * (100 - percent) / 100
+			rap *
+			(100 - percent) /
+			100
 
 		if item.Price > limit then
 
@@ -1018,7 +1055,10 @@ local function CheckRAP(item)
 
 			item.UnderRap =
 				math.floor(
-					(1 - item.Price / rap) * 100
+					(
+						1 -
+						item.Price / rap
+					) * 100
 				)
 
 		end
@@ -1061,9 +1101,14 @@ local function CheckCategory(item)
 		if item.BaseName
 			and item.BaseName ~= ""
 		then
-			name = item.BaseName
+
+			name =
+				item.BaseName
+
 		else
-			name = item.Name
+
+			name =
+				item.Name
 		end
 
 		local result =
@@ -1176,7 +1221,6 @@ local function GetText(obj)
 	then
 
 		return obj.Text or ""
-
 	end
 
 	return ""
@@ -1196,7 +1240,9 @@ local function GetImage(frame)
 
 	end)
 
-	if image and image.Image then
+	if image
+		and image.Image
+	then
 
 		return image.Image:gsub(
 			"rbxassetid://",
@@ -1212,7 +1258,10 @@ end
 -- ITEM PARSER
 --================================================--
 
-local function ParseItemDetail(item, inside)
+local function ParseItemDetail(
+	item,
+	inside
+)
 
 	item.BaseName = item.Name
 	item.Size = ""
@@ -1227,7 +1276,9 @@ local function ParseItemDetail(item, inside)
 			true
 		)
 
-	if bigFrame and bigFrame.Visible then
+	if bigFrame
+		and bigFrame.Visible
+	then
 
 		local label =
 			bigFrame:FindFirstChild(
@@ -1236,7 +1287,9 @@ local function ParseItemDetail(item, inside)
 			)
 
 		item.Size =
-			label and label.Text or "Big"
+			label
+			and label.Text
+			or "Big"
 	end
 
 	--================================================--
@@ -1249,7 +1302,9 @@ local function ParseItemDetail(item, inside)
 			true
 		)
 
-	if mutation and mutation.Visible then
+	if mutation
+		and mutation.Visible
+	then
 
 		local text =
 			GetText(mutation)
@@ -1269,7 +1324,9 @@ local function ParseItemDetail(item, inside)
 			true
 		)
 
-	if shiny and shiny.Visible then
+	if shiny
+		and shiny.Visible
+	then
 
 		local label =
 			shiny:FindFirstChild(
@@ -1278,7 +1335,8 @@ local function ParseItemDetail(item, inside)
 			)
 
 		if label then
-			item.Variant = label.Text
+			item.Variant =
+				label.Text
 		end
 	end
 
@@ -1292,7 +1350,9 @@ local function ParseItemDetail(item, inside)
 	local lower =
 		name:lower()
 
-	if lower:find("^big shiny ") then
+	if lower:find(
+		"^big shiny "
+	) then
 
 		if item.Size == "" then
 			item.Size = "Big"
@@ -1308,7 +1368,9 @@ local function ParseItemDetail(item, inside)
 				""
 			)
 
-	elseif lower:find("^big ") then
+	elseif lower:find(
+		"^big "
+	) then
 
 		if item.Size == "" then
 			item.Size = "Big"
@@ -1320,7 +1382,9 @@ local function ParseItemDetail(item, inside)
 				""
 			)
 
-	elseif lower:find("^shiny ") then
+	elseif lower:find(
+		"^shiny "
+	) then
 
 		if item.Mutation == "" then
 			item.Mutation = "Shiny"
@@ -1338,7 +1402,10 @@ end
 -- WEIGHT
 --================================================--
 
-local function GetWeight(item, inside)
+local function GetWeight(
+	item,
+	inside
+)
 
 	if item.ItemType ~= "Fish" then
 		return ""
@@ -1350,7 +1417,10 @@ local function GetWeight(item, inside)
 			true
 		)
 
-	if not frame or not frame.Visible then
+	if not frame
+		or not frame.Visible
+	then
+
 		return "-"
 	end
 
@@ -1370,7 +1440,9 @@ local function GetWeight(item, inside)
 			true
 		)
 
-	return text and text.Text or "-"
+	return text
+		and text.Text
+		or "-"
 end
 
 --================================================--
@@ -1398,7 +1470,9 @@ local function GetOriginalName(
 
 		end)
 
-	return ok and result or nil
+	return ok
+		and result
+		or nil
 end
 
 --================================================--
@@ -1420,7 +1494,9 @@ local function GetSeller(userId)
 
 		end)
 
-	return ok and name or tostring(userId)
+	return ok
+		and name
+		or tostring(userId)
 end
 
 --================================================--
@@ -1550,9 +1626,12 @@ local function CheckItem(
 
 			item.RawName =
 				item.BaseName
-
 		end
 	end
+
+	--================================================--
+	-- WEIGHT
+	--================================================--
 
 	item.Weight =
 		GetWeight(
@@ -1739,6 +1818,7 @@ local function BuildItemText(item)
 
 	local text =
 		"━━━━━━━━━━━━━━\n\n" ..
+
 		"🎣 ***`" ..
 		tostring(
 			item.Name or "-"
@@ -1767,7 +1847,6 @@ local function BuildItemText(item)
 			"Variant : " ..
 			item.Variant ..
 			"\n"
-
 	end
 
 	if item.Mutation
@@ -1778,7 +1857,6 @@ local function BuildItemText(item)
 			"Mutation : ***`" ..
 			item.Mutation ..
 			"`***\n"
-
 	end
 
 	if item.Size
@@ -1789,7 +1867,6 @@ local function BuildItemText(item)
 			"Size : " ..
 			item.Size ..
 			"\n"
-
 	end
 
 	if item.Weight
@@ -1801,7 +1878,6 @@ local function BuildItemText(item)
 			"Weight : " ..
 			item.Weight ..
 			"\n"
-
 	end
 
 	text ..=
@@ -1825,7 +1901,6 @@ local function BuildItemText(item)
 				item.UnderRap
 			) ..
 			"%`***\n"
-
 	end
 
 	return text .. "\n"
@@ -1839,7 +1914,10 @@ local function SendWebhook(items)
 
 	local grouped = {}
 
+	--================================================--
 	-- GROUP BY WEBHOOK
+	--================================================--
+
 	for _, item in ipairs(items) do
 
 		local webhook =
@@ -1847,9 +1925,7 @@ local function SendWebhook(items)
 				item.ItemType
 			)
 
-		if webhook
-			and webhook ~= ""
-		then
+		if webhook then
 
 			grouped[webhook] =
 				grouped[webhook] or {}
@@ -1861,6 +1937,23 @@ local function SendWebhook(items)
 
 		end
 	end
+
+	--================================================--
+	-- NO WEBHOOK
+	--================================================--
+
+	if next(grouped) == nil then
+
+		warn(
+			"[WEBHOOK] NO WEBHOOK CONFIGURED"
+		)
+
+		return
+	end
+
+	--================================================--
+	-- REQUEST
+	--================================================--
 
 	local req =
 		request
@@ -1875,6 +1968,10 @@ local function SendWebhook(items)
 
 		return
 	end
+
+	--================================================--
+	-- SEND
+	--================================================--
 
 	for webhook, list in pairs(
 		grouped
@@ -1891,8 +1988,13 @@ local function SendWebhook(items)
 				break
 			end
 
-			itemText ..= add
+			itemText ..=
+				add
 		end
+
+		--================================================--
+		-- SERVER
+		--================================================--
 
 		local jobId =
 			game.JobId
@@ -1902,6 +2004,10 @@ local function SendWebhook(items)
 			game.PlaceId ..
 			"&gameInstanceId=" ..
 			jobId
+
+		--================================================--
+		-- PAYLOAD
+		--================================================--
 
 		local payload = {
 
@@ -1978,6 +2084,10 @@ local function SendWebhook(items)
 				}
 			}}
 		}
+
+		--================================================--
+		-- SEND REQUEST
+		--================================================--
 
 		local ok, err =
 			pcall(function()
@@ -2157,6 +2267,7 @@ local function GetAllServers()
 			or not data
 			or not data.data
 		then
+
 			break
 		end
 
@@ -2168,7 +2279,6 @@ local function GetAllServers()
 				server.id ~= game.JobId
 				and server.playing >= Config.Server.MinPlayer
 				and server.playing <= Config.Server.MaxPlayer
-				-- and server.playing < server.maxPlayers
 				and not IsServerUsed(
 					server.id
 				)
@@ -2207,6 +2317,7 @@ end
 local function GetNextServer()
 
 	if #ServerList == 0 then
+
 		ServerList =
 			GetAllServers()
 	end
@@ -2379,7 +2490,6 @@ local function RunScan()
 			"[SCAN ERROR]",
 			err
 		)
-
 	end
 
 	print(
@@ -2419,7 +2529,6 @@ local function StartFinder()
 				"[MAIN ERROR]",
 				err
 			)
-
 		end
 
 		if Config.Server.AutoHop then
