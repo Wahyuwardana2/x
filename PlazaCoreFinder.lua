@@ -14,7 +14,7 @@ local PlaceId = game.PlaceId
 -- EXTERNAL
 --================================================--
 
-return function(ExternalConfig)
+local ExternalConfig = ...
 
 if type(ExternalConfig) ~= "table" then
 	ExternalConfig = {}
@@ -31,7 +31,6 @@ pcall(function()
 			:WaitForChild("RAPController")
 	)
 end)
-
 --================================================--
 -- CONFIG
 --================================================--
@@ -2386,5 +2385,3 @@ task.spawn(
 print(
 	"🎣 PLAZA SCANNER FISHIT READY"
 )
-
-end
