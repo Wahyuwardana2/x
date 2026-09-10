@@ -1777,7 +1777,7 @@ local function SendWebhook(items)
 	local req =
 		request
 		or http_request
-		or syn.request
+		or (syn and syn.request)
 
 	if not req then
 
@@ -1789,72 +1789,21 @@ local function SendWebhook(items)
 	end
 
 	--================================================--
-	-- SEND
+	-- SEND BATCHES
 	--================================================--
 
-	for webhook, list in pairs(
-		grouped
-	) do
+	local BATCH_SIZE = 4
+	local MAX_TEXT = 900
 
-		-- Maksimal 4 item per webhook.
-		local batchSize = 4
-		local batchStart = 1
+	for webhook, list in pairs(grouped) do
 
-		while batchStart <= #list do
+		local batch = {}
+		local batchText = ""
 
-			local batch = {}
-			local itemText = ""
-
-			--================================================--
-			-- BUILD BATCH
-			--================================================--
-
-			for i = batchStart,
-				math.min(
-					batchStart + batchSize - 1,
-					#list
-				) do
-
-				local add =
-					BuildItemText(
-						list[i]
-					)
-
-				-- Tetap gunakan batas aman lama.
-				-- Jika item berikutnya membuat text > 900,
-				-- kirim batch sekarang dan lanjut ke batch berikutnya.
-				if #itemText > 0
-					and #itemText + #add > 900 then
-
-					break
-				end
-
-				table.insert(
-					batch,
-					list[i]
-				)
-
-				itemText ..=
-					add
-			end
-
-			--================================================--
-			-- SAFETY: JANGAN SAMPAI BATCH KOSONG
-			--================================================--
+		local function SendBatch()
 
 			if #batch == 0 then
-
-				local item = list[batchStart]
-
-				table.insert(
-					batch,
-					item
-				)
-
-				itemText =
-					BuildItemText(
-						item
-					)
+				return
 			end
 
 			--================================================--
@@ -1908,7 +1857,6 @@ local function SendWebhook(items)
 								"📋 Copy mobile:\n`" ..
 								jobId ..
 								"`\n\n" ..
-
 								"📋 Copy desktop:\n```" ..
 								jobId ..
 								"```",
@@ -1926,7 +1874,7 @@ local function SendWebhook(items)
 						{
 							name = "Items",
 							value =
-								itemText,
+								batchText,
 							inline = false
 						}
 					},
@@ -1949,6 +1897,7 @@ local function SendWebhook(items)
 				pcall(function()
 
 					req({
+
 						Url = webhook,
 						Method = "POST",
 
@@ -1970,7 +1919,6 @@ local function SendWebhook(items)
 				print(
 					"[WEBHOOK SENT]",
 					#batch,
-					"ITEMS",
 					webhook
 				)
 
@@ -1980,19 +1928,257 @@ local function SendWebhook(items)
 					"[WEBHOOK ERROR]",
 					err
 				)
-			end
 
-			--================================================--
-			-- NEXT BATCH
-			--================================================--
-
-			batchStart += #batch
-
-			if batchStart <= #list then
-				task.wait(0.5)
 			end
 		end
+
+		for _, item in ipairs(list) do
+
+			local add =
+				BuildItemText(item)
+
+			-- Start a new batch when it reaches 4 items
+			-- or when adding the next item would exceed 900 chars.
+			if #batch >= BATCH_SIZE
+				or (#batch > 0 and #batchText + #add > MAX_TEXT)
+			then
+
+				SendBatch()
+
+				table.clear(batch)
+				batchText = ""
+				task.wait(0.5)
+			end
+
+			-- Always keep the current item so no item is lost.
+			table.insert(batch, item)
+			batchText ..= add
+		end
+
+		-- Send remaining items.
+		SendBatch()
 	end
+end
+
+--================================================--
+-- SERVER CACHE
+--================================================--
+
+local ServerCacheFile =
+	"JP_FINDER_V7_2_SERVERS.json"
+
+local ServerList = {}
+local TriedServers = {}
+
+local function SaveServerCache()
+
+	if not writefile then
+		return
+	end
+
+	pcall(function()
+
+		writefile(
+			ServerCacheFile,
+
+			HttpService:JSONEncode({
+
+				Servers =
+					ServerList,
+
+				Tried =
+					TriedServers
+
+			})
+		)
+
+	end)
+end
+
+local function LoadServerCache()
+
+	if not readfile
+		or not isfile
+	then
+		return
+	end
+
+	if not isfile(
+		ServerCacheFile
+	) then
+		return
+	end
+
+	local ok, data =
+		pcall(function()
+
+			return HttpService:JSONDecode(
+				readfile(
+					ServerCacheFile
+				)
+			)
+
+		end)
+
+	if ok and data then
+
+		ServerList =
+			data.Servers or {}
+
+		TriedServers =
+			data.Tried or {}
+
+		print(
+			"[CACHE LOADED]",
+			#ServerList
+		)
+	end
+end
+
+local function IsServerUsed(id)
+
+	return TriedServers[id] == true
+end
+
+--================================================--
+-- SCRAPE SERVERS
+--================================================--
+
+local function GetAllServers()
+
+	print("=== SCRAPE SERVER ===")
+
+	local servers = {}
+	local cursor = ""
+
+	for page = 1, 5 do
+
+		local url =
+			"https://games.roblox.com/v1/games/" ..
+			tostring(PlaceId) ..
+			"/servers/Public?sortOrder=Desc&limit=100"
+
+		if cursor ~= "" then
+
+			url ..=
+				"&cursor=" ..
+				cursor
+
+		end
+
+		local ok, response =
+			pcall(function()
+
+				return game:HttpGet(
+					url
+				)
+
+			end)
+
+		if not ok then
+
+			warn(
+				"[SCRAPE ERROR]"
+			)
+
+			break
+		end
+
+		local decode, data =
+			pcall(function()
+
+				return HttpService:JSONDecode(
+					response
+				)
+
+			end)
+
+		if not decode
+			or not data
+			or not data.data
+		then
+
+			break
+		end
+
+		for _, server in ipairs(
+			data.data
+		) do
+
+			if
+				server.id ~= game.JobId
+				and server.playing >= Config.Server.MinPlayer
+				and server.playing <= Config.Server.MaxPlayer
+				and not IsServerUsed(
+					server.id
+				)
+			then
+
+				table.insert(
+					servers,
+					server.id
+				)
+
+			end
+		end
+
+		if not data.nextPageCursor then
+			break
+		end
+
+		cursor =
+			data.nextPageCursor
+
+		task.wait(0.5)
+	end
+
+	print(
+		"[SERVER FOUND]",
+		#servers
+	)
+
+	return servers
+end
+
+--================================================--
+-- NEXT SERVER
+--================================================--
+
+local function GetNextServer()
+
+	if #ServerList == 0 then
+
+		ServerList =
+			GetAllServers()
+	end
+
+	if #ServerList == 0 then
+
+		print(
+			"[RESET SERVER CACHE]"
+		)
+
+		TriedServers = {}
+
+		ServerList =
+			GetAllServers()
+	end
+
+	local serverId =
+		table.remove(
+			ServerList,
+			1
+		)
+
+	if serverId then
+
+		TriedServers[serverId] =
+			true
+
+		SaveServerCache()
+	end
+
+	return serverId
 end
 
 --================================================--
