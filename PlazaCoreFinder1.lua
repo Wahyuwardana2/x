@@ -1966,14 +1966,6 @@ local function SendWebhook(items)
 	end
 
 	--================================================--
-	-- BATCH SETTINGS
-	--================================================--
-
-	-- Maksimal 4 item untuk setiap webhook message.
-	-- Item sisanya akan dilanjutkan ke message berikutnya.
-	local BATCH_SIZE = 4
-
-	--================================================--
 	-- SEND
 	--================================================--
 
@@ -1981,15 +1973,11 @@ local function SendWebhook(items)
 		grouped
 	) do
 
-		local totalItems = #list
+		-- Maksimal 4 item per webhook.
+		local batchSize = 4
 		local batchStart = 1
 
-		while batchStart <= totalItems do
-
-			local batchEnd = math.min(
-				batchStart + BATCH_SIZE - 1,
-				totalItems
-			)
+		while batchStart <= #list do
 
 			local batch = {}
 			local itemText = ""
@@ -1998,17 +1986,52 @@ local function SendWebhook(items)
 			-- BUILD BATCH
 			--================================================--
 
-			for index = batchStart, batchEnd do
+			for i = batchStart,
+				math.min(
+					batchStart + batchSize - 1,
+					#list
+				) do
 
-				local item = list[index]
-				local add = BuildItemText(item)
+				local add =
+					BuildItemText(
+						list[i]
+					)
+
+				-- Tetap gunakan batas aman lama.
+				-- Jika item berikutnya membuat text > 900,
+				-- kirim batch sekarang dan lanjut ke batch berikutnya.
+				if #itemText > 0
+					and #itemText + #add > 900 then
+
+					break
+				end
+
+				table.insert(
+					batch,
+					list[i]
+				)
+
+				itemText ..=
+					add
+			end
+
+			--================================================--
+			-- SAFETY: JANGAN SAMPAI BATCH KOSONG
+			--================================================--
+
+			if #batch == 0 then
+
+				local item = list[batchStart]
 
 				table.insert(
 					batch,
 					item
 				)
 
-				itemText ..= add
+				itemText =
+					BuildItemText(
+						item
+					)
 			end
 
 			--================================================--
@@ -2041,14 +2064,7 @@ local function SendWebhook(items)
 					title =
 						"🎣 PLAZA SCANNER FOUND (" ..
 						#batch ..
-						" ITEMS)" ..
-						" [" ..
-						batchStart ..
-						"-" ..
-						batchEnd ..
-						"/" ..
-						totalItems ..
-						"]",
+						" ITEMS)",
 
 					color = 65280,
 
@@ -2108,18 +2124,22 @@ local function SendWebhook(items)
 
 			local ok, err =
 				pcall(function()
+
 					req({
 						Url = webhook,
 						Method = "POST",
+
 						Headers = {
 							["Content-Type"] =
 								"application/json"
 						},
+
 						Body =
 							HttpService:JSONEncode(
 								payload
 							)
 					})
+
 				end)
 
 			if ok then
@@ -2127,9 +2147,7 @@ local function SendWebhook(items)
 				print(
 					"[WEBHOOK SENT]",
 					#batch,
-					"ITEMS | BATCH",
-					batchStart .. "-" .. batchEnd,
-					"/" .. totalItems,
+					"ITEMS",
 					webhook
 				)
 
@@ -2145,11 +2163,9 @@ local function SendWebhook(items)
 			-- NEXT BATCH
 			--================================================--
 
-			batchStart = batchEnd + 1
+			batchStart += #batch
 
-			-- Beri jeda kecil antar request agar batch berikutnya
-			-- tidak langsung dikirim bersamaan.
-			if batchStart <= totalItems then
+			if batchStart <= #list then
 				task.wait(0.5)
 			end
 		end
