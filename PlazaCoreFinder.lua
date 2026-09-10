@@ -1747,7 +1747,6 @@ local function SendWebhook(items)
 			)
 
 		if webhook then
-
 			grouped[webhook] =
 				grouped[webhook] or {}
 
@@ -1755,7 +1754,6 @@ local function SendWebhook(items)
 				grouped[webhook],
 				item
 			)
-
 		end
 	end
 
@@ -1791,6 +1789,14 @@ local function SendWebhook(items)
 	end
 
 	--================================================--
+	-- BATCH SETTINGS
+	--================================================--
+
+	-- Maksimal 4 item untuk setiap webhook message.
+	-- Item sisanya akan dilanjutkan ke message berikutnya.
+	local BATCH_SIZE = 4
+
+	--================================================--
 	-- SEND
 	--================================================--
 
@@ -1798,378 +1804,179 @@ local function SendWebhook(items)
 		grouped
 	) do
 
-		local itemText = ""
+		local totalItems = #list
+		local batchStart = 1
 
-		for _, item in ipairs(list) do
+		while batchStart <= totalItems do
 
-			local add =
-				BuildItemText(item)
-
-			if #itemText + #add > 900 then
-				break
-			end
-
-			itemText ..=
-				add
-		end
-
-		--================================================--
-		-- SERVER
-		--================================================--
-
-		local jobId =
-			game.JobId
-
-		local joinLink =
-			"https://www.roblox.com/games/start?placeId=" ..
-			game.PlaceId ..
-			"&gameInstanceId=" ..
-			jobId
-
-		--================================================--
-		-- PAYLOAD
-		--================================================--
-
-		local payload = {
-
-			username =
-				"PLAZA SCANNER BOT",
-
-			avatar_url =
-				"https://raw.githubusercontent.com/Wahyuwardana2/x/refs/heads/main/FindMe.png",
-
-			embeds = {{
-
-				title =
-					"🎣 PLAZA SCANNER FOUND (" ..
-					#list ..
-					" ITEMS)",
-
-				color = 65280,
-
-				fields = {
-
-					{
-						name = "Server",
-
-						value =
-							#Players:GetPlayers() ..
-							"/" ..
-							Players.MaxPlayers,
-
-						inline = false
-					},
-
-					{
-						name = "JobId",
-
-						value =
-							"📋 Copy mobile:\n`" ..
-							jobId ..
-							"`\n\n" ..
-
-							"📋 Copy desktop:\n```" ..
-							jobId ..
-							"```",
-
-						inline = false
-					},
-
-					{
-						name = "Join Server",
-
-						value =
-							"🔗 " ..
-							joinLink,
-
-						inline = false
-					},
-
-					{
-						name = "Items",
-
-						value =
-							itemText,
-
-						inline = false
-					}
-				},
-
-				footer = {
-
-					text =
-						"PLAZA SCANNER | " ..
-						game.JobId ..
-						" | " ..
-						GetWIBTime()
-				}
-			}}
-		}
-
-		--================================================--
-		-- SEND REQUEST
-		--================================================--
-
-		local ok, err =
-			pcall(function()
-
-				req({
-
-					Url = webhook,
-
-					Method = "POST",
-
-					Headers = {
-						["Content-Type"] =
-							"application/json"
-					},
-
-					Body =
-						HttpService:JSONEncode(
-							payload
-						)
-				})
-
-			end)
-
-		if ok then
-
-			print(
-				"[WEBHOOK SENT]",
-				#list,
-				webhook
+			local batchEnd = math.min(
+				batchStart + BATCH_SIZE - 1,
+				totalItems
 			)
 
-		else
+			local batch = {}
+			local itemText = ""
 
-			warn(
-				"[WEBHOOK ERROR]",
-				err
-			)
+			--================================================--
+			-- BUILD BATCH
+			--================================================--
 
-		end
-	end
-end
+			for index = batchStart, batchEnd do
 
---================================================--
--- SERVER CACHE
---================================================--
-
-local ServerCacheFile =
-	"JP_FINDER_V7_2_SERVERS.json"
-
-local ServerList = {}
-local TriedServers = {}
-
-local function SaveServerCache()
-
-	if not writefile then
-		return
-	end
-
-	pcall(function()
-
-		writefile(
-			ServerCacheFile,
-
-			HttpService:JSONEncode({
-
-				Servers =
-					ServerList,
-
-				Tried =
-					TriedServers
-
-			})
-		)
-
-	end)
-end
-
-local function LoadServerCache()
-
-	if not readfile
-		or not isfile
-	then
-		return
-	end
-
-	if not isfile(
-		ServerCacheFile
-	) then
-		return
-	end
-
-	local ok, data =
-		pcall(function()
-
-			return HttpService:JSONDecode(
-				readfile(
-					ServerCacheFile
-				)
-			)
-
-		end)
-
-	if ok and data then
-
-		ServerList =
-			data.Servers or {}
-
-		TriedServers =
-			data.Tried or {}
-
-		print(
-			"[CACHE LOADED]",
-			#ServerList
-		)
-	end
-end
-
-local function IsServerUsed(id)
-
-	return TriedServers[id] == true
-end
-
---================================================--
--- SCRAPE SERVERS
---================================================--
-
-local function GetAllServers()
-
-	print("=== SCRAPE SERVER ===")
-
-	local servers = {}
-	local cursor = ""
-
-	for page = 1, 5 do
-
-		local url =
-			"https://games.roblox.com/v1/games/" ..
-			tostring(PlaceId) ..
-			"/servers/Public?sortOrder=Desc&limit=100"
-
-		if cursor ~= "" then
-
-			url ..=
-				"&cursor=" ..
-				cursor
-
-		end
-
-		local ok, response =
-			pcall(function()
-
-				return game:HttpGet(
-					url
-				)
-
-			end)
-
-		if not ok then
-
-			warn(
-				"[SCRAPE ERROR]"
-			)
-
-			break
-		end
-
-		local decode, data =
-			pcall(function()
-
-				return HttpService:JSONDecode(
-					response
-				)
-
-			end)
-
-		if not decode
-			or not data
-			or not data.data
-		then
-
-			break
-		end
-
-		for _, server in ipairs(
-			data.data
-		) do
-
-			if
-				server.id ~= game.JobId
-				and server.playing >= Config.Server.MinPlayer
-				and server.playing <= Config.Server.MaxPlayer
-				and not IsServerUsed(
-					server.id
-				)
-			then
+				local item = list[index]
+				local add = BuildItemText(item)
 
 				table.insert(
-					servers,
-					server.id
+					batch,
+					item
 				)
 
+				itemText ..= add
+			end
+
+			--================================================--
+			-- SERVER
+			--================================================--
+
+			local jobId =
+				game.JobId
+
+			local joinLink =
+				"https://www.roblox.com/games/start?placeId=" ..
+				game.PlaceId ..
+				"&gameInstanceId=" ..
+				jobId
+
+			--================================================--
+			-- PAYLOAD
+			--================================================--
+
+			local payload = {
+
+				username =
+					"PLAZA SCANNER BOT",
+
+				avatar_url =
+					"https://raw.githubusercontent.com/Wahyuwardana2/x/refs/heads/main/FindMe.png",
+
+				embeds = {{
+
+					title =
+						"🎣 PLAZA SCANNER FOUND (" ..
+						#batch ..
+						" ITEMS)" ..
+						" [" ..
+						batchStart ..
+						"-" ..
+						batchEnd ..
+						"/" ..
+						totalItems ..
+						"]",
+
+					color = 65280,
+
+					fields = {
+
+						{
+							name = "Server",
+							value =
+								#Players:GetPlayers() ..
+								"/" ..
+								Players.MaxPlayers,
+							inline = false
+						},
+
+						{
+							name = "JobId",
+							value =
+								"📋 Copy mobile:\n`" ..
+								jobId ..
+								"`\n\n" ..
+
+								"📋 Copy desktop:\n```" ..
+								jobId ..
+								"```",
+							inline = false
+						},
+
+						{
+							name = "Join Server",
+							value =
+								"🔗 " ..
+								joinLink,
+							inline = false
+						},
+
+						{
+							name = "Items",
+							value =
+								itemText,
+							inline = false
+						}
+					},
+
+					footer = {
+						text =
+							"PLAZA SCANNER | " ..
+							game.JobId ..
+							" | " ..
+							GetWIBTime()
+					}
+				}}
+			}
+
+			--================================================--
+			-- SEND REQUEST
+			--================================================--
+
+			local ok, err =
+				pcall(function()
+					req({
+						Url = webhook,
+						Method = "POST",
+						Headers = {
+							["Content-Type"] =
+								"application/json"
+						},
+						Body =
+							HttpService:JSONEncode(
+								payload
+							)
+					})
+				end)
+
+			if ok then
+
+				print(
+					"[WEBHOOK SENT]",
+					#batch,
+					"ITEMS | BATCH",
+					batchStart .. "-" .. batchEnd,
+					"/" .. totalItems,
+					webhook
+				)
+
+			else
+
+				warn(
+					"[WEBHOOK ERROR]",
+					err
+				)
+			end
+
+			--================================================--
+			-- NEXT BATCH
+			--================================================--
+
+			batchStart = batchEnd + 1
+
+			-- Beri jeda kecil antar request agar batch berikutnya
+			-- tidak langsung dikirim bersamaan.
+			if batchStart <= totalItems then
+				task.wait(0.5)
 			end
 		end
-
-		if not data.nextPageCursor then
-			break
-		end
-
-		cursor =
-			data.nextPageCursor
-
-		task.wait(0.5)
 	end
-
-	print(
-		"[SERVER FOUND]",
-		#servers
-	)
-
-	return servers
-end
-
---================================================--
--- NEXT SERVER
---================================================--
-
-local function GetNextServer()
-
-	if #ServerList == 0 then
-
-		ServerList =
-			GetAllServers()
-	end
-
-	if #ServerList == 0 then
-
-		print(
-			"[RESET SERVER CACHE]"
-		)
-
-		TriedServers = {}
-
-		ServerList =
-			GetAllServers()
-	end
-
-	local serverId =
-		table.remove(
-			ServerList,
-			1
-		)
-
-	if serverId then
-
-		TriedServers[serverId] =
-			true
-
-		SaveServerCache()
-	end
-
-	return serverId
 end
 
 --================================================--
