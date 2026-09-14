@@ -69,6 +69,7 @@ local Config = {
 					"pyrocoil",
 					"stormshell brute",
 					"wintertusk mammofin",
+					"mr money bags"
 				}
 			},
 
