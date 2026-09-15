@@ -66,16 +66,16 @@ local Config = {
 				Match = "Exact",
 
 				List = {
-					"pyrocoil",
-					"stormshell brute",
-					"wintertusk mammofin",
+					-- "pyrocoil",
+					-- "stormshell brute",
+					-- "wintertusk mammofin",
 					"mr money bags"
 				}
 			},
 
 			Mutation = {
-				Enabled = false,
-				Require = false,
+				Enabled = true,
+				Require = true,
 				Mode = "Blacklist",
 				Match = "Exact",
 				List = {
@@ -90,7 +90,7 @@ local Config = {
 			},
 
 			RAP = {
-				Enabled = true,
+				Enabled = false,
 				Percent = 10
 			}
 		},
