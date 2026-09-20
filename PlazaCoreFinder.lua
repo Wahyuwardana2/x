@@ -58,7 +58,7 @@ local Config = {
 		--================================================--
 
 		Fish = {
-			Enabled = true,
+			Enabled = false,
 
 			Name = {
 				Enabled = true,
