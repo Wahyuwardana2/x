@@ -58,7 +58,7 @@ local Config = {
 		--================================================--
 
 		Fish = {
-			Enabled = false,
+			Enabled = true,
 
 			Name = {
 				Enabled = true,
@@ -66,15 +66,15 @@ local Config = {
 				Match = "Exact",
 
 				List = {
-					-- "pyrocoil",
-					-- "stormshell brute",
-					-- "wintertusk mammofin",
-					"mr money bags"
+					"pyrocoil",
+					"stormshell brute",
+					"wintertusk mammofin"
+					-- "mr money bags"
 				}
 			},
 
 			Mutation = {
-				Enabled = true,
+				Enabled = false,
 				Require = true,
 				Mode = "Blacklist",
 				Match = "Exact",
@@ -90,8 +90,8 @@ local Config = {
 			},
 
 			RAP = {
-				Enabled = false,
-				Percent = 10
+				Enabled = true,
+				Percent = 30
 			}
 		},
 
