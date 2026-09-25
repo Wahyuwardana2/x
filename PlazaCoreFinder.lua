@@ -91,7 +91,7 @@ local Config = {
 
 			RAP = {
 				Enabled = true,
-				Percent = 30
+				Percent = 15
 			}
 		},
 
