@@ -66,10 +66,11 @@ local Config = {
 				Match = "Exact",
 
 				List = {
-					"pyrocoil",
-					"stormshell brute",
-					"wintertusk mammofin"
+					-- "pyrocoil",
+					-- "stormshell brute",
+					-- "wintertusk mammofin"
 					-- "mr money bags"
+					"cenobyte.exe"
 				}
 			},
 
@@ -90,7 +91,7 @@ local Config = {
 			},
 
 			RAP = {
-				Enabled = true,
+				Enabled = false,
 				Percent = 15
 			}
 		},
