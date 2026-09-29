@@ -2043,105 +2043,87 @@ local function IsServerUsed(id)
 end
 
 --================================================--
--- SCRAPE SERVERS
+-- GET ALL SERVERS
 --================================================--
 
 local function GetAllServers()
 
-	print("=== SCRAPE SERVER ===")
+    local servers = {}
+    local cursor = ""
+    local page = 1
 
-	local servers = {}
-	local cursor = ""
+    while true do
 
-	for page = 1, 5 do
+        local url =
+            "https://games.roblox.com/v1/games/"
+            .. tostring(PlaceId)
+            .. "/servers/Public?sortOrder=Desc&limit=100"
 
-		local url =
-			"https://games.roblox.com/v1/games/" ..
-			tostring(PlaceId) ..
-			"/servers/Public?sortOrder=Desc&limit=100"
+        if cursor ~= "" then
+            url = url .. "&cursor=" .. HttpService:UrlEncode(cursor)
+        end
 
-		if cursor ~= "" then
+        local success, response = pcall(function()
+            return game:HttpGet(url)
+        end)
 
-			url ..=
-				"&cursor=" ..
-				cursor
+        if not success then
+            warn("[SERVER API ERROR]", response)
+            break
+        end
 
-		end
+        local decodeSuccess, data = pcall(function()
+            return HttpService:JSONDecode(response)
+        end)
 
-		local ok, response =
-			pcall(function()
+        if not decodeSuccess or not data then
+            warn("[SERVER JSON ERROR]")
+            break
+        end
 
-				return game:HttpGet(
-					url
-				)
+        if data.data then
 
-			end)
+            for _, server in ipairs(data.data) do
 
-		if not ok then
+                if
+                    server.id ~= game.JobId
+                    and server.playing >= Config.Server.MinPlayer
+                    and server.playing <= Config.Server.MaxPlayer
+                    and not IsServerUsed(server.id)
+                then
 
-			warn(
-				"[SCRAPE ERROR]"
-			)
+                    table.insert(servers, server.id)
 
-			break
-		end
+                end
 
-		local decode, data =
-			pcall(function()
+            end
 
-				return HttpService:JSONDecode(
-					response
-				)
+        end
 
-			end)
+        print(
+            "[SERVER PAGE]",
+            page,
+            "| FOUND:",
+            #servers
+        )
 
-		if not decode
-			or not data
-			or not data.data
-		then
+        -- Tidak ada halaman berikutnya
+        if not data.nextPageCursor then
+            break
+        end
 
-			break
-		end
+        cursor = data.nextPageCursor
+        page += 1
 
-		for _, server in ipairs(
-			data.data
-		) do
+        task.wait(0.5)
 
-			if
-				server.id ~= game.JobId
-				and server.playing >= Config.Server.MinPlayer
-				and server.playing <= Config.Server.MaxPlayer
-				and not IsServerUsed(
-					server.id
-				)
-			then
+    end
 
-				table.insert(
-					servers,
-					server.id
-				)
+    print("[SERVER FOUND]", #servers)
 
-			end
-		end
+    return servers
 
-		if not data.nextPageCursor then
-			break
-		end
-
-		cursor =
-			data.nextPageCursor
-
-		task.wait(0.5)
-	end
-
-	print(
-		"[SERVER FOUND]",
-		#servers
-	)
-
-	return servers
 end
-
 --================================================--
 -- NEXT SERVER
 --================================================--
