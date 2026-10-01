@@ -1689,7 +1689,7 @@ local function BuildItemText(item)
 		tostring(item.SellerUsername or "-") ..
 		" **" ..
 		tostring(item.SellerDisplayName or "-") ..
-		"**"
+		"**" ..
 
 		"\n\n" ..
 
