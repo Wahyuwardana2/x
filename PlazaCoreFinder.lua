@@ -1314,30 +1314,32 @@ local function GetSeller(userId)
 	local username =
 		tostring(userId)
 
-	pcall(function()
+	local ok, name =
+		pcall(function()
 
-		username =
-			Players:GetNameFromUserIdAsync(
+			return Players:GetNameFromUserIdAsync(
 				userId
 			)
 
-	end)
+		end)
+
+	if ok and name then
+		username = name
+	end
 
 	local displayName =
 		username
 
-	-- Jika player masih ada di server,
-	-- ambil DisplayName langsung dari Player.
+	-- DisplayName hanya bisa diambil langsung
+	-- jika pemilik booth masih ada di server ini.
 	local player =
 		Players:GetPlayerByUserId(
 			userId
 		)
 
 	if player then
-
 		displayName =
 			player.DisplayName
-
 	end
 
 	return {
@@ -1345,6 +1347,7 @@ local function GetSeller(userId)
 		DisplayName = displayName
 	}
 end
+
 --================================================--
 -- CHECK ITEM
 --================================================--
@@ -1539,17 +1542,22 @@ local function CheckItem(
 	--================================================--
 
 	local seller =
-	GetSeller(
-		booth:GetAttribute(
-			"Owner"
+		GetSeller(
+			booth:GetAttribute(
+				"Owner"
+			)
 		)
-	)
 
-item.SellerUsername =
-	seller.Username
+	-- Tetap simpan item.Seller sebagai username
+	-- agar bagian script lain tetap kompatibel.
+	item.Seller =
+		seller.Username
 
-item.SellerDisplayName =
-	seller.DisplayName
+	item.SellerUsername =
+		seller.Username
+
+	item.SellerDisplayName =
+		seller.DisplayName
 
 	--================================================--
 	-- UUID
@@ -1671,17 +1679,21 @@ local function BuildItemText(item)
 	local text =
 		"━━━━━━━━━━━━━━\n\n" ..
 
-		"🎣 **`" ..
+		"🎣 ***`" ..
 		tostring(
 			item.Name or "-"
 		) ..
-		"`**\n\n" ..
+		"`***\n\n" ..
 
 		"**Seller**\n" ..
-		tostring(item.SellerUsername or "-") ..
+		tostring(
+			item.SellerUsername or item.Seller or "-"
+		) ..
 		"(" ..
-		tostring(item.SellerDisplayName or "-") ..
-		")"
+		tostring(
+			item.SellerDisplayName or "-"
+		) ..
+		")" ..
 
 		"\n\n" ..
 
@@ -1707,9 +1719,9 @@ local function BuildItemText(item)
 	then
 
 		text ..=
-			"Mutation : **`" ..
+			"Mutation : ***`" ..
 			item.Mutation ..
-			"`**\n"
+			"`***\n"
 	end
 
 	if item.Size
@@ -1734,11 +1746,11 @@ local function BuildItemText(item)
 	end
 
 	text ..=
-		"\nPrice : **`" ..
+		"\nPrice : ***`" ..
 		tostring(
 			item.Price or 0
 		) ..
-		"`**" ..
+		"`***" ..
 
 		"\nRAP : " ..
 		tostring(
@@ -1749,11 +1761,11 @@ local function BuildItemText(item)
 	if item.UnderRap then
 
 		text ..=
-			"Under RAP : **`" ..
+			"Under RAP : ***`" ..
 			tostring(
 				item.UnderRap
 			) ..
-			"%`**\n"
+			"%`***\n"
 	end
 
 	return text .. "\n"
