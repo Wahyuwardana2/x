@@ -2186,10 +2186,20 @@ local function GetNextServer()
 			GetAllServers()
 	end
 
+	if #ServerList == 0 then
+		return nil
+	end
+
+	local randomIndex =
+		math.random(
+			1,
+			#ServerList
+		)
+
 	local serverId =
 		table.remove(
 			ServerList,
-			1
+			randomIndex
 		)
 
 	if serverId then
@@ -2198,6 +2208,16 @@ local function GetNextServer()
 			true
 
 		SaveServerCache()
+
+		print(
+			"[RANDOM SERVER]",
+			"Index:",
+			randomIndex,
+			"/",
+			#ServerList + 1,
+			"| ID:",
+			serverId
+		)
 	end
 
 	return serverId
