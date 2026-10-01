@@ -62,8 +62,8 @@ local Config = {
 
 			Name = {
 				Enabled = true,
-				Mode = "Whitelist",
-				Match = "Exact",
+				Mode = "Whitelist", -- Whitelist / Blacklist
+				Match = "Exact",  -- Exact / Contains / StartsWith / EndsWith
 
 				List = {
 					"pyrocoil",
