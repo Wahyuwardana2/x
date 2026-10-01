@@ -1,5 +1,5 @@
 --================================================--
--- PLAZA SCANNER
+-- PLAZA SCANNER - IMPROVED VERSION
 --================================================--
 
 local Players = game:GetService("Players")
@@ -20,7 +20,6 @@ if type(ExternalConfig) ~= "table" then
 	ExternalConfig = {}
 end
 
-
 local RAPController
 
 pcall(function()
@@ -31,6 +30,7 @@ pcall(function()
 			:WaitForChild("RAPController")
 	)
 end)
+
 --================================================--
 -- CONFIG
 --================================================--
@@ -339,19 +339,26 @@ local Config = {
 }
 
 --================================================--
--- APPLY EXTERNAL CONFIG
+-- MERGE EXTERNAL CONFIG (IMPROVED)
 --================================================--
+
+local function MergeTable(target, source)
+	if type(source) ~= "table" then
+		return
+	end
+	
+	for k, v in pairs(source) do
+		if type(v) == "table" and type(target[k]) == "table" then
+			MergeTable(target[k], v)
+		else
+			target[k] = v
+		end
+	end
+end
 
 if type(ExternalConfig.Webhook) == "table" then
 	Config.Webhook = ExternalConfig.Webhook
 end
-
---================================================--
--- OPTIONAL OVERRIDE
---================================================--
-
--- Kalau nanti mau seluruh config bisa dikirim
--- dari executor, bagian ini bisa digunakan.
 
 if type(ExternalConfig.Debug) == "boolean" then
 	Config.Debug = ExternalConfig.Debug
@@ -366,31 +373,58 @@ if tonumber(ExternalConfig.StayTime) then
 end
 
 if type(ExternalConfig.Items) == "table" then
-	Config.Items = ExternalConfig.Items
+	MergeTable(Config.Items, ExternalConfig.Items)
 end
 
 if type(ExternalConfig.Server) == "table" then
-	for key, value in pairs(ExternalConfig.Server) do
-		Config.Server[key] = value
-	end
+	MergeTable(Config.Server, ExternalConfig.Server)
 end
 
 --================================================--
--- STATE
+-- STATE MANAGEMENT
 --================================================--
 
-local FoundItems = {}
-local UsedUUID = {}
-local FoundCount = 0
+local State = {
+	FoundItems = {},
+	UsedUUID = {},
+	FoundCount = 0,
+	HopAttempts = 0,
+	IsRunning = false
+}
+
+local MAX_HOP_ATTEMPTS = 5
+local ServerCacheFile = "JP_FINDER_V7_2_SERVERS.json"
+local ServerList = {}
+local TriedServers = {}
 
 --================================================--
--- HELPERS
+-- LOGGER
 --================================================--
 
-local function DebugPrint(...)
+local function Log(...)
 	if Config.Debug then
 		print(...)
 	end
+end
+
+local function Warn(...)
+	warn(...)
+end
+
+--================================================--
+-- SAFE ATTRIBUTE ACCESS
+--================================================--
+
+local function SafeGetAttribute(obj, name, default)
+	if not obj or not obj.GetAttribute then
+		return default or nil
+	end
+	
+	local ok, result = pcall(function()
+		return obj:GetAttribute(name)
+	end)
+	
+	return ok and result or (default or nil)
 end
 
 --================================================--
@@ -398,24 +432,20 @@ end
 --================================================--
 
 local function Clean(value)
-
 	if value == nil then
 		return ""
 	end
 
 	local text = tostring(value)
-
 	text = text:lower()
-
 	text = text:gsub("%s+", " ")
-
 	text = text:match("^%s*(.-)%s*$")
 
 	return text
 end
 
 --================================================--
--- CATEGORY
+-- CATEGORY & WEBHOOK HELPERS
 --================================================--
 
 local function GetCategory(itemType)
@@ -423,9 +453,7 @@ local function GetCategory(itemType)
 end
 
 local function GetWebhook(itemType)
-
-	local webhook =
-		Config.Webhook[itemType]
+	local webhook = Config.Webhook[itemType]
 
 	if type(webhook) ~= "string" then
 		return nil
@@ -439,16 +467,14 @@ local function GetWebhook(itemType)
 end
 
 --================================================--
--- WIB TIME
+-- TIME
 --================================================--
 
 local function GetWIBTime()
-
 	return os.date(
 		"!%d/%m/%Y %H:%M:%S",
 		os.time() + 7 * 60 * 60
 	) .. " WIB"
-
 end
 
 --================================================--
@@ -456,90 +482,50 @@ end
 --================================================--
 
 local function CleanRAPName(name)
-
-	local result =
-		tostring(name or "")
+	local result = tostring(name or "")
 
 	for _, prefix in ipairs({
 		"Big Shiny ",
 		"Big ",
 		"Shiny "
 	}) do
-
-		result = result:gsub(
-			"^" .. prefix,
-			""
-		)
-
+		result = result:gsub("^" .. prefix, "")
 	end
 
 	return result
 end
 
 --================================================--
--- RAP
+-- RAP (IMPROVED LOGGING)
 --================================================--
 
-local function GetRAP(
-	itemType,
-	itemName,
-	item
-)
-
+local function GetRAP(itemType, itemName, item)
 	if not RAPController then
-
-		print(
-			"[RAP] CONTROLLER NIL"
-		)
-
+		Log("[RAP] CONTROLLER NIL")
 		return nil
 	end
 
-	local ok, rap =
-		pcall(function()
+	local ok, rap = pcall(function()
+		if itemType == "Pets" and item.ItemId then
+			return RAPController:GetRAP("Pets", item.ItemId)
+		end
 
-			if itemType == "Pets"
-				and item.ItemId
-			then
-
-				return RAPController:GetRAP(
-					"Pets",
-					item.ItemId
-				)
-
+		if item.ItemId then
+			local result = RAPController:GetRAP(itemType, item.ItemId)
+			if result then
+				return result
 			end
+		end
 
-			if item.ItemId then
+		return RAPController:GetRAP(
+			itemType,
+			CleanRAPName(item.BaseName or itemName)
+		)
+	end)
 
-				local result =
-					RAPController:GetRAP(
-						itemType,
-						item.ItemId
-					)
-
-				if result then
-					return result
-				end
-
-			end
-
-			return RAPController:GetRAP(
-				itemType,
-				CleanRAPName(
-					item.BaseName or itemName
-				)
-			)
-
-		end)
-
-	print(
-		"[RAP FINAL]",
-		itemType,
-		itemName,
-		item.ItemId,
-		ok,
-		rap
-	)
+	if not ok then
+		Log("[RAP ERROR]", itemType, itemName, item.ItemId, rap)
+	end
 
 	return ok and rap or nil
 end
@@ -548,65 +534,33 @@ end
 -- NAME FILTER
 --================================================--
 
-local function CheckFilter(
-	value,
-	cfg
-)
-
-	if not cfg
-		or not cfg.Enabled
-	then
+local function CheckFilter(value, cfg)
+	if not cfg or not cfg.Enabled then
 		return true
 	end
 
 	if #(cfg.List or {}) == 0 then
-
 		if cfg.Mode == "Whitelist" then
 			return false
 		end
-
 		return true
 	end
 
 	value = Clean(value)
-
 	local found = false
 
 	for _, v in ipairs(cfg.List) do
-
 		local text = Clean(v)
 
 		if text ~= "" then
-
 			if cfg.Match == "Exact" then
-
-				found =
-					value == text
-
+				found = value == text
 			elseif cfg.Match == "Contains" then
-
-				found =
-					value:find(
-						text,
-						1,
-						true
-					) ~= nil
-
+				found = value:find(text, 1, true) ~= nil
 			elseif cfg.Match == "StartsWith" then
-
-				found =
-					value:sub(
-						1,
-						#text
-					) == text
-
+				found = value:sub(1, #text) == text
 			elseif cfg.Match == "EndsWith" then
-
-				found =
-					value:sub(
-						-#text
-					) == text
-
+				found = value:sub(-#text) == text
 			end
 		end
 
@@ -616,11 +570,8 @@ local function CheckFilter(
 	end
 
 	if cfg.Mode == "Blacklist" then
-
 		return not found
-
 	elseif cfg.Mode == "Whitelist" then
-
 		return found
 	end
 
@@ -631,79 +582,38 @@ end
 -- MUTATION FILTER
 --================================================--
 
-local function CheckMutation(
-	mutation,
-	cfg
-)
-
-	if not cfg
-		or not cfg.Enabled
-	then
+local function CheckMutation(mutation, cfg)
+	if not cfg or not cfg.Enabled then
 		return true
 	end
 
 	mutation = Clean(mutation)
 
-	if cfg.Require
-		and (
-			mutation == ""
-			or mutation == "normal"
-			or mutation == "nill"
-		)
-	then
-
+	if cfg.Require and (mutation == "" or mutation == "normal" or mutation == "nill") then
 		return false
 	end
 
-	for _, bad in ipairs(
-		cfg.List or {}
-	) do
-
-		local target =
-			Clean(bad)
-
+	for _, bad in ipairs(cfg.List or {}) do
+		local target = Clean(bad)
 		local matched = false
 
 		if cfg.Match == "Exact" then
-
-			matched =
-				mutation == target
-
+			matched = mutation == target
 		elseif cfg.Match == "Contains" then
-
-			matched =
-				mutation:find(
-					target,
-					1,
-					true
-				) ~= nil
-
+			matched = mutation:find(target, 1, true) ~= nil
 		elseif cfg.Match == "StartsWith" then
-
-			matched =
-				mutation:sub(
-					1,
-					#target
-				) == target
-
+			matched = mutation:sub(1, #target) == target
 		elseif cfg.Match == "EndsWith" then
-
-			matched =
-				mutation:sub(
-					-#target
-				) == target
+			matched = mutation:sub(-#target) == target
 		end
 
 		if matched then
-
 			if cfg.Mode == "Blacklist" then
 				return false
 			end
-
 			if cfg.Mode == "Whitelist" then
 				return true
 			end
-
 		end
 	end
 
@@ -719,46 +629,22 @@ end
 --================================================--
 
 local function CheckPrice(item)
+	local category = GetCategory(item.ItemType)
+	local cfg = category and category.Price
 
-	local category =
-		GetCategory(item.ItemType)
-
-	local cfg =
-		category
-		and category.Price
-
-	if not cfg
-		or not cfg.Enabled
-	then
+	if not cfg or not cfg.Enabled then
 		return true
 	end
 
-	local price =
-		tonumber(item.Price) or 0
+	local price = tonumber(item.Price) or 0
 
-	if cfg.Min
-		and price < cfg.Min
-	then
-
-		DebugPrint(
-			"[PRICE TOO LOW]",
-			item.Name,
-			price
-		)
-
+	if cfg.Min and price < cfg.Min then
+		Log("[PRICE TOO LOW]", item.Name, price)
 		return false
 	end
 
-	if cfg.Max
-		and price > cfg.Max
-	then
-
-		DebugPrint(
-			"[PRICE TOO HIGH]",
-			item.Name,
-			price
-		)
-
+	if cfg.Max and price > cfg.Max then
+		Log("[PRICE TOO HIGH]", item.Name, price)
 		return false
 	end
 
@@ -770,30 +656,18 @@ end
 --================================================--
 
 local function CheckRAP(item)
-
-	local category =
-		GetCategory(item.ItemType)
-
-	local cfg =
-		category
-		and category.RAP
+	local category = GetCategory(item.ItemType)
+	local cfg = category and category.RAP
 
 	-- Tetap ambil RAP walaupun filter OFF
-	local rap =
-		GetRAP(
-			item.ItemType,
-			item.Name,
-			item
-		)
+	local rap = GetRAP(item.ItemType, item.Name, item)
 
 	if rap then
 		item.RAP = rap
 	end
 
 	-- RAP OFF = tidak memfilter
-	if not cfg
-		or not cfg.Enabled
-	then
+	if not cfg or not cfg.Enabled then
 		return true
 	end
 
@@ -802,88 +676,34 @@ local function CheckRAP(item)
 		return true
 	end
 
-	--================================================--
-	-- RAP MIN
-	--================================================--
-
-	if cfg.Min
-		and rap < cfg.Min
-	then
-
-		DebugPrint(
-			"[RAP TOO LOW]",
-			item.Name,
-			"RAP:",
-			rap,
-			"MIN:",
-			cfg.Min
-		)
-
+	if cfg.Min and rap < cfg.Min then
+		Log("[RAP TOO LOW]", item.Name, "RAP:", rap, "MIN:", cfg.Min)
 		return false
 	end
 
-	--================================================--
-	-- RAP MAX
-	--================================================--
-
-	if cfg.Max
-		and rap > cfg.Max
-	then
-
-		DebugPrint(
-			"[RAP TOO HIGH]",
-			item.Name,
-			"RAP:",
-			rap,
-			"MAX:",
-			cfg.Max
-		)
-
+	if cfg.Max and rap > cfg.Max then
+		Log("[RAP TOO HIGH]", item.Name, "RAP:", rap, "MAX:", cfg.Max)
 		return false
 	end
-
-	--================================================--
-	-- UNDER RAP PERCENT
-	--================================================--
 
 	if cfg.Percent ~= nil then
-
-		local percent =
-			tonumber(cfg.Percent) or 0
-
-		local limit =
-			rap *
-			(100 - percent) /
-			100
+		local percent = tonumber(cfg.Percent) or 0
+		local limit = rap * (100 - percent) / 100
 
 		if item.Price > limit then
-
-			DebugPrint(
+			Log(
 				"[OVER RAP LIMIT]",
 				item.Name,
-				"PRICE:",
-				item.Price,
-				"RAP:",
-				rap,
-				"REQUIRED:",
-				percent .. "%",
-				"MAX PRICE:",
-				limit
+				"PRICE:", item.Price,
+				"RAP:", rap,
+				"REQUIRED:", percent .. "%",
+				"MAX PRICE:", limit
 			)
-
 			return false
 		end
 
 		if rap > 0 then
-
-			item.UnderRap =
-				math.floor(
-					(
-						1 -
-						item.Price / rap
-					) * 100
-				)
-
+			item.UnderRap = math.floor((1 - item.Price / rap) * 100)
 		end
 	end
 
@@ -895,17 +715,10 @@ end
 --================================================--
 
 local function CheckCategory(item)
-
-	local category =
-		GetCategory(item.ItemType)
+	local category = GetCategory(item.ItemType)
 
 	if not category then
-
-		DebugPrint(
-			"[UNKNOWN TYPE]",
-			item.ItemType
-		)
-
+		Log("[UNKNOWN TYPE]", item.ItemType)
 		return false
 	end
 
@@ -913,116 +726,40 @@ local function CheckCategory(item)
 		return false
 	end
 
-	--================================================--
-	-- NAME
-	--================================================--
-
+	-- NAME CHECK
 	if category.Name then
+		local name = (item.BaseName and item.BaseName ~= "") and item.BaseName or item.Name
+		local result = CheckFilter(name, category.Name)
 
-		local name
-
-		if item.BaseName
-			and item.BaseName ~= ""
-		then
-
-			name =
-				item.BaseName
-
-		else
-
-			name =
-				item.Name
-		end
-
-		local result =
-			CheckFilter(
-				name,
-				category.Name
-			)
-
-		DebugPrint(
+		Log(
 			"[NAME CHECK]",
-			"Type:",
-			item.ItemType,
-			"Display:",
-			item.Name,
-			"Base:",
-			item.BaseName,
-			"Clean:",
-			Clean(name),
-			"Mode:",
-			category.Name.Mode,
-			"Match:",
-			category.Name.Match,
-			"Result:",
-			result
+			"Type:", item.ItemType,
+			"Display:", item.Name,
+			"Base:", item.BaseName,
+			"Clean:", Clean(name),
+			"Mode:", category.Name.Mode,
+			"Match:", category.Name.Match,
+			"Result:", result
 		)
 
 		if not result then
-
-			DebugPrint(
-				"[NAME FAIL]",
-				item.Name,
-				"BASE:",
-				item.BaseName
-			)
-
+			Log("[NAME FAIL]", item.Name, "BASE:", item.BaseName)
 			return false
 		end
-
 	elseif category.FilterName then
-
-		if not CheckNameFilter(
-			item,
-			category.Names
-		) then
-
-			DebugPrint(
-				"[NAME FAIL]",
-				item.Name
-			)
-
-			return false
-		end
-	end
-
-	--================================================--
-	-- VARIANT
-	--================================================--
-
-	if category.Variant
-		and not CheckFilter(
-			item.Variant,
-			category.Variant
-		)
-	then
-
-		DebugPrint(
-			"[VARIANT FAIL]",
-			item.Name,
-			item.Variant
-		)
-
+		Log("[NAME FAIL]", item.Name)
 		return false
 	end
 
-	--================================================--
-	-- SIZE
-	--================================================--
+	-- VARIANT CHECK
+	if category.Variant and not CheckFilter(item.Variant, category.Variant) then
+		Log("[VARIANT FAIL]", item.Name, item.Variant)
+		return false
+	end
 
-	if category.Size
-		and not CheckFilter(
-			item.Size,
-			category.Size
-		)
-	then
-
-		DebugPrint(
-			"[SIZE FAIL]",
-			item.Name,
-			item.Size
-		)
-
+	-- SIZE CHECK
+	if category.Size and not CheckFilter(item.Size, category.Size) then
+		Log("[SIZE FAIL]", item.Name, item.Size)
 		return false
 	end
 
@@ -1034,15 +771,11 @@ end
 --================================================--
 
 local function GetText(obj)
-
 	if not obj then
 		return ""
 	end
 
-	if obj:IsA("TextLabel")
-		or obj:IsA("TextButton")
-	then
-
+	if obj:IsA("TextLabel") or obj:IsA("TextButton") then
 		return obj.Text or ""
 	end
 
@@ -1050,28 +783,14 @@ local function GetText(obj)
 end
 
 local function GetImage(frame)
-
 	local image
 
 	pcall(function()
-
-		image =
-			frame:FindFirstChildWhichIsA(
-				"ImageLabel",
-				true
-			)
-
+		image = frame:FindFirstChildWhichIsA("ImageLabel", true)
 	end)
 
-	if image
-		and image.Image
-	then
-
-		return image.Image:gsub(
-			"rbxassetid://",
-			""
-		)
-
+	if image and image.Image then
+		return image.Image:gsub("rbxassetid://", "")
 	end
 
 	return nil
@@ -1081,143 +800,57 @@ end
 -- ITEM PARSER
 --================================================--
 
-local function ParseItemDetail(
-	item,
-	inside
-)
-
+local function ParseItemDetail(item, inside)
 	item.BaseName = item.Name
 	item.Size = ""
 
-	--================================================--
 	-- SIZE
-	--================================================--
-
-	local bigFrame =
-		inside:FindFirstChild(
-			"BigFrame",
-			true
-		)
-
-	if bigFrame
-		and bigFrame.Visible
-	then
-
-		local label =
-			bigFrame:FindFirstChild(
-				"Label",
-				true
-			)
-
-		item.Size =
-			label
-			and label.Text
-			or "Big"
+	local bigFrame = inside:FindFirstChild("BigFrame", true)
+	if bigFrame and bigFrame.Visible then
+		local label = bigFrame:FindFirstChild("Label", true)
+		item.Size = (label and label.Text) or "Big"
 	end
 
-	--================================================--
 	-- MUTATION
-	--================================================--
-
-	local mutation =
-		inside:FindFirstChild(
-			"VariantLabel",
-			true
-		)
-
-	if mutation
-		and mutation.Visible
-	then
-
-		local text =
-			GetText(mutation)
-
+	local mutation = inside:FindFirstChild("VariantLabel", true)
+	if mutation and mutation.Visible then
+		local text = GetText(mutation)
 		if text ~= "" then
 			item.Mutation = text
 		end
 	end
 
-	--================================================--
 	-- VARIANT
-	--================================================--
-
-	local shiny =
-		inside:FindFirstChild(
-			"ShinyFrame",
-			true
-		)
-
-	if shiny
-		and shiny.Visible
-	then
-
-		local label =
-			shiny:FindFirstChild(
-				"Label",
-				true
-			)
-
+	local shiny = inside:FindFirstChild("ShinyFrame", true)
+	if shiny and shiny.Visible then
+		local label = shiny:FindFirstChild("Label", true)
 		if label then
-			item.Variant =
-				label.Text
+			item.Variant = label.Text
 		end
 	end
 
-	--================================================--
-	-- PREFIX
-	--================================================--
+	-- PREFIX HANDLING
+	local name = item.Name
+	local lower = name:lower()
 
-	local name =
-		item.Name
-
-	local lower =
-		name:lower()
-
-	if lower:find(
-		"^big shiny "
-	) then
-
+	if lower:find("^big shiny ") then
 		if item.Size == "" then
 			item.Size = "Big"
 		end
-
 		if item.Mutation == "" then
 			item.Mutation = "Shiny"
 		end
-
-		item.BaseName =
-			name:gsub(
-				"^[Bb][Ii][Gg]%s+[Ss][Hh][Ii][Nn][Yy]%s+",
-				""
-			)
-
-	elseif lower:find(
-		"^big "
-	) then
-
+		item.BaseName = name:gsub("^[Bb][Ii][Gg]%s+[Ss][Hh][Ii][Nn][Yy]%s+", "")
+	elseif lower:find("^big ") then
 		if item.Size == "" then
 			item.Size = "Big"
 		end
-
-		item.BaseName =
-			name:gsub(
-				"^[Bb][Ii][Gg]%s+",
-				""
-			)
-
-	elseif lower:find(
-		"^shiny "
-	) then
-
+		item.BaseName = name:gsub("^[Bb][Ii][Gg]%s+", "")
+	elseif lower:find("^shiny ") then
 		if item.Mutation == "" then
 			item.Mutation = "Shiny"
 		end
-
-		item.BaseName =
-			name:gsub(
-				"^[Ss][Hh][Ii][Nn][Yy]%s+",
-				""
-			)
+		item.BaseName = name:gsub("^[Ss][Hh][Ii][Nn][Yy]%s+", "")
 	end
 end
 
@@ -1225,77 +858,39 @@ end
 -- WEIGHT
 --================================================--
 
-local function GetWeight(
-	item,
-	inside
-)
-
+local function GetWeight(item, inside)
 	if item.ItemType ~= "Fish" then
 		return ""
 	end
 
-	local frame =
-		inside:FindFirstChild(
-			"WeightFrame",
-			true
-		)
-
-	if not frame
-		or not frame.Visible
-	then
-
+	local frame = inside:FindFirstChild("WeightFrame", true)
+	if not frame or not frame.Visible then
 		return "-"
 	end
 
-	local label =
-		frame:FindFirstChild(
-			"Label",
-			true
-		)
-
+	local label = frame:FindFirstChild("Label", true)
 	if label then
 		return label.Text
 	end
 
-	local text =
-		frame:FindFirstChildWhichIsA(
-			"TextLabel",
-			true
-		)
-
-	return text
-		and text.Text
-		or "-"
+	local text = frame:FindFirstChildWhichIsA("TextLabel", true)
+	return (text and text.Text) or "-"
 end
 
 --================================================--
 -- ORIGINAL NAME
 --================================================--
 
-local function GetOriginalName(
-	itemType,
-	itemId
-)
-
-	if not itemId
-		or not RAPController
-	then
+local function GetOriginalName(itemType, itemId)
+	if not itemId or not RAPController then
 		return nil
 	end
 
-	local ok, result =
-		pcall(function()
+	local ok, result = pcall(function()
+		return RAPController:GetItemName(itemType, itemId)
+	end)
 
-			return RAPController:GetItemName(
-				itemType,
-				itemId
-			)
-
-		end)
-
-	return ok
-		and result
-		or nil
+	return ok and result or nil
 end
 
 --================================================--
@@ -1303,256 +898,127 @@ end
 --================================================--
 
 local function GetSeller(userId)
-
 	if not userId then
 		return "Unknown"
 	end
 
-	local ok, name =
-		pcall(function()
+	local ok, name = pcall(function()
+		return Players:GetNameFromUserIdAsync(userId)
+	end)
 
-			return Players:GetNameFromUserIdAsync(
-				userId
-			)
-
-		end)
-
-	return ok
-		and name
-		or tostring(userId)
+	return ok and name or tostring(userId)
 end
 
 --================================================--
--- CHECK ITEM
+-- CHECK ITEM (IMPROVED WITH SAFE ACCESS)
 --================================================--
 
-local function CheckItem(
-	frame,
-	booth
-)
+local function CheckItem(frame, booth)
+	local uuid = SafeGetAttribute(frame, "ItemUUID")
 
-	local uuid =
-		frame:GetAttribute(
-			"ItemUUID"
-		)
-
-	if uuid
-		and UsedUUID[uuid]
-	then
+	if uuid and State.UsedUUID[uuid] then
 		return
 	end
 
-	local inside =
-		frame:FindFirstChild(
-			"Inside"
-		)
-
+	local inside = frame:FindFirstChild("Inside")
 	if not inside then
 		return
 	end
 
-	local buy =
-		frame:FindFirstChild(
-			"Buy"
-		)
+	local buy = frame:FindFirstChild("Buy")
 
 	local item = {
-
 		ItemUUID = uuid,
-
-		ItemType =
-			frame:GetAttribute(
-				"ItemType"
-			),
-
-		ItemId =
-			frame:GetAttribute(
-				"ItemId"
-			),
-
+		ItemType = SafeGetAttribute(frame, "ItemType"),
+		ItemId = SafeGetAttribute(frame, "ItemId"),
 		RawName = "",
-
-		Image =
-			GetImage(frame),
-
+		Image = GetImage(frame),
 		Name = "",
 		BaseName = "",
 		Variant = "",
 		Mutation = "",
 		Size = "",
 		Weight = "",
-
-		Price =
-			buy
-			and buy:GetAttribute(
-				"LastKnownPrice"
-			)
-			or 0,
-
+		Price = buy and SafeGetAttribute(buy, "LastKnownPrice", 0) or 0,
 		RAP = nil,
 		UnderRap = nil
 	}
 
-	--================================================--
 	-- NAME
-	--================================================--
-
-	local label =
-		inside:FindFirstChild(
-			"Label",
-			true
-		)
-
+	local label = inside:FindFirstChild("Label", true)
 	if label then
-		item.Name =
-			GetText(label)
+		item.Name = GetText(label)
 	end
 
 	if item.Name == "" then
 		return
 	end
 
-	--================================================--
 	-- PARSE
-	--================================================--
+	ParseItemDetail(item, inside)
 
-	ParseItemDetail(
-		item,
-		inside
-	)
-
-	--================================================--
 	-- PET ORIGINAL NAME
-	--================================================--
-
 	if item.ItemType == "Pets" then
-
-		local original =
-			GetOriginalName(
-				item.ItemType,
-				item.ItemId
-			)
-
+		local original = GetOriginalName(item.ItemType, item.ItemId)
 		if original then
-
-			item.RawName =
-				original
-
-			print(
-				"[PET NAME DEBUG]",
-				item.Name,
-				item.ItemId,
-				item.RawName
-			)
-
+			item.RawName = original
+			Log("[PET NAME DEBUG]", item.Name, item.ItemId, item.RawName)
 		else
-
-			item.RawName =
-				item.BaseName
+			item.RawName = item.BaseName
 		end
 	end
 
-	--================================================--
 	-- WEIGHT
-	--================================================--
+	item.Weight = GetWeight(item, inside)
 
-	item.Weight =
-		GetWeight(
-			item,
-			inside
-		)
-
-	--================================================--
 	-- CATEGORY FILTER
-	--================================================--
-
 	if not CheckCategory(item) then
 		return
 	end
 
-	local category =
-		GetCategory(
-			item.ItemType
-		)
+	local category = GetCategory(item.ItemType)
 
-	--================================================--
 	-- MUTATION
-	--================================================--
-
-	if category.Mutation
-		and not CheckMutation(
-			item.Mutation,
-			category.Mutation
-		)
-	then
-
-		DebugPrint(
-			"[MUTATION FAIL]",
-			item.Name,
-			item.Mutation
-		)
-
+	if category and category.Mutation and not CheckMutation(item.Mutation, category.Mutation) then
+		Log("[MUTATION FAIL]", item.Name, item.Mutation)
 		return
 	end
 
-	--================================================--
 	-- PRICE
-	--================================================--
-
 	if not CheckPrice(item) then
 		return
 	end
 
-	--================================================--
 	-- RAP
-	--================================================--
-
 	if not CheckRAP(item) then
 		return
 	end
 
-	--================================================--
 	-- SELLER
-	--================================================--
+	item.Seller = GetSeller(SafeGetAttribute(booth, "Owner"))
 
-	item.Seller =
-		GetSeller(
-			booth:GetAttribute(
-				"Owner"
-			)
-		)
-
-	--================================================--
 	-- UUID
-	--================================================--
-
 	if uuid then
-		UsedUUID[uuid] = true
+		State.UsedUUID[uuid] = true
 	end
 
-	table.insert(
-		FoundItems,
-		item
-	)
+	table.insert(State.FoundItems, item)
+	State.FoundCount += 1
 
-	FoundCount += 1
-
-	--================================================--
-	-- DEBUG
-	--================================================--
-
-	print("================")
-	print("FOUND", item.Name)
-	print("TYPE", item.ItemType)
-	print("BASE", item.BaseName)
-	print("VARIANT", item.Variant)
-	print("MUTATION", item.Mutation)
-	print("SIZE", item.Size)
-	print("WEIGHT", item.Weight)
-	print("PRICE", item.Price)
-	print("RAP", item.RAP)
-	print("================")
-
+	-- DEBUG OUTPUT (ONLY IN DEBUG MODE)
+	if Config.Debug then
+		print("================")
+		print("FOUND", item.Name)
+		print("TYPE", item.ItemType)
+		print("BASE", item.BaseName)
+		print("VARIANT", item.Variant)
+		print("MUTATION", item.Mutation)
+		print("SIZE", item.Size)
+		print("WEIGHT", item.Weight)
+		print("PRICE", item.Price)
+		print("RAP", item.RAP)
+		print("================")
+	end
 end
 
 --================================================--
@@ -1560,71 +1026,31 @@ end
 --================================================--
 
 local function ScanBooths()
-
-	local islands =
-		workspace:FindFirstChild(
-			"Islands"
-		)
-
+	local islands = workspace:FindFirstChild("Islands")
 	if not islands then
 		return
 	end
 
-	local trade =
-		islands:FindFirstChild(
-			"TradePlaza",
-			true
-		)
-
+	local trade = islands:FindFirstChild("TradePlaza", true)
 	if not trade then
 		return
 	end
 
-	local booths =
-		trade:FindFirstChild(
-			"Booths"
-		)
-
+	local booths = trade:FindFirstChild("Booths")
 	if not booths then
 		return
 	end
 
-	for _, booth in ipairs(
-		booths:GetChildren()
-	) do
-
-		local plane =
-			booth:FindFirstChild(
-				"Plane"
-			)
-
+	for _, booth in ipairs(booths:GetChildren()) do
+		local plane = booth:FindFirstChild("Plane")
 		if plane then
-
-			local gui =
-				plane:FindFirstChild(
-					"SurfaceGui"
-				)
-
+			local gui = plane:FindFirstChild("SurfaceGui")
 			if gui then
-
-				local items =
-					gui:FindFirstChild(
-						"Items"
-					)
-
+				local items = gui:FindFirstChild("Items")
 				if items then
-
-					for _, frame in ipairs(
-						items:GetChildren()
-					) do
-
+					for _, frame in ipairs(items:GetChildren()) do
 						if frame:IsA("Frame") then
-
-							CheckItem(
-								frame,
-								booth
-							)
-
+							CheckItem(frame, booth)
 						end
 					end
 				end
@@ -1634,330 +1060,157 @@ local function ScanBooths()
 end
 
 --================================================--
--- ITEM TEXT
+-- ITEM TEXT BUILDER (IMPROVED)
 --================================================--
 
 local function BuildItemText(item)
+	local parts = {
+		"━━━━━━━━━━━━━━\n\n",
+		"🎣 ***`" .. tostring(item.Name or "-") .. "`***\n\n",
+		"**Seller**\n" .. tostring(item.Seller or "-") .. "\n\n",
+		"Type : " .. tostring(item.ItemType or "-") .. "\n\n"
+	}
 
-	local text =
-		"━━━━━━━━━━━━━━\n\n" ..
-
-		"🎣 ***`" ..
-		tostring(
-			item.Name or "-"
-		) ..
-		"`***\n\n" ..
-
-		"**Seller**\n" ..
-		tostring(
-			item.Seller or "-"
-		) ..
-
-		"\n\n" ..
-
-		"Type : " ..
-		tostring(
-			item.ItemType or "-"
-		) ..
-
-		"\n\n"
-
-	if item.Variant
-		and item.Variant ~= ""
-	then
-
-		text ..=
-			"Variant : " ..
-			item.Variant ..
-			"\n"
+	if item.Variant and item.Variant ~= "" then
+		table.insert(parts, "Variant : " .. item.Variant .. "\n")
 	end
 
-	if item.Mutation
-		and item.Mutation ~= ""
-	then
-
-		text ..=
-			"Mutation : ***`" ..
-			item.Mutation ..
-			"`***\n"
+	if item.Mutation and item.Mutation ~= "" then
+		table.insert(parts, "Mutation : ***`" .. item.Mutation .. "`***\n")
 	end
 
-	if item.Size
-		and item.Size ~= ""
-	then
-
-		text ..=
-			"Size : " ..
-			item.Size ..
-			"\n"
+	if item.Size and item.Size ~= "" then
+		table.insert(parts, "Size : " .. item.Size .. "\n")
 	end
 
-	if item.Weight
-		and item.Weight ~= ""
-		and item.Weight ~= "-"
-	then
-
-		text ..=
-			"Weight : " ..
-			item.Weight ..
-			"\n"
+	if item.Weight and item.Weight ~= "" and item.Weight ~= "-" then
+		table.insert(parts, "Weight : " .. item.Weight .. "\n")
 	end
 
-	text ..=
-		"\nPrice : ***`" ..
-		tostring(
-			item.Price or 0
-		) ..
-		"`***" ..
-
-		"\nRAP : " ..
-		tostring(
-			item.RAP or "-"
-		) ..
-		"\n"
+	table.insert(parts, "\nPrice : ***`" .. tostring(item.Price or 0) .. "`***\n")
+	table.insert(parts, "RAP : " .. tostring(item.RAP or "-") .. "\n")
 
 	if item.UnderRap then
-
-		text ..=
-			"Under RAP : ***`" ..
-			tostring(
-				item.UnderRap
-			) ..
-			"%`***\n"
+		table.insert(parts, "Under RAP : ***`" .. tostring(item.UnderRap) .. "%`***\n")
 	end
 
-	return text .. "\n"
+	return table.concat(parts) .. "\n"
 end
 
 --================================================--
--- WEBHOOK
+-- WEBHOOK (IMPROVED)
 --================================================--
 
 local function SendWebhook(items)
-
 	local grouped = {}
 
-	--================================================--
 	-- GROUP BY WEBHOOK
-	--================================================--
-
 	for _, item in ipairs(items) do
-
-		local webhook =
-			GetWebhook(
-				item.ItemType
-			)
-
+		local webhook = GetWebhook(item.ItemType)
 		if webhook then
-			grouped[webhook] =
-				grouped[webhook] or {}
-
-			table.insert(
-				grouped[webhook],
-				item
-			)
+			grouped[webhook] = grouped[webhook] or {}
+			table.insert(grouped[webhook], item)
 		end
 	end
 
-	--================================================--
 	-- NO WEBHOOK
-	--================================================--
-
 	if next(grouped) == nil then
-
-		warn(
-			"[WEBHOOK] NO WEBHOOK CONFIGURED"
-		)
-
+		Warn("[WEBHOOK] NO WEBHOOK CONFIGURED")
 		return
 	end
 
-	--================================================--
-	-- REQUEST
-	--================================================--
-
-	local req =
-		request
-		or http_request
-		or (syn and syn.request)
+	-- REQUEST FUNCTION
+	local req = request or http_request or (syn and syn.request)
 
 	if not req then
-
-		warn(
-			"[WEBHOOK] REQUEST FUNCTION NOT FOUND"
-		)
-
+		Warn("[WEBHOOK] REQUEST FUNCTION NOT FOUND")
 		return
 	end
 
-	--================================================--
 	-- SEND BATCHES
-	--================================================--
-
 	local BATCH_SIZE = 4
 	local MAX_TEXT = 900
 
 	for webhook, list in pairs(grouped) do
-
 		local batch = {}
 		local batchText = ""
 
 		local function SendBatch()
-
 			if #batch == 0 then
 				return
 			end
 
-			--================================================--
-			-- SERVER
-			--================================================--
-
-			local jobId =
-				game.JobId
-
-			local joinLink =
-				"https://www.roblox.com/games/start?placeId=" ..
-				game.PlaceId ..
-				"&gameInstanceId=" ..
-				jobId
-
-			--================================================--
-			-- PAYLOAD
-			--================================================--
+			local jobId = game.JobId
+			local joinLink = "https://www.roblox.com/games/start?placeId=" ..
+				game.PlaceId .. "&gameInstanceId=" .. jobId
 
 			local payload = {
-
-				username =
-					"PLAZA SCANNER BOT",
-
-				avatar_url =
-					"https://raw.githubusercontent.com/Wahyuwardana2/x/refs/heads/main/FindMe.png",
-
+				username = "PLAZA SCANNER BOT",
+				avatar_url = "https://raw.githubusercontent.com/Wahyuwardana2/x/refs/heads/main/FindMe.png",
 				embeds = {{
-
-					title =
-						"🎣 PLAZA SCANNER FOUND (" ..
-						#batch ..
-						" ITEMS)",
-
+					title = "🎣 PLAZA SCANNER FOUND (" .. #batch .. " ITEMS)",
 					color = 65280,
-
 					fields = {
-
 						{
 							name = "Server",
-							value =
-								#Players:GetPlayers() ..
-								"/" ..
-								Players.MaxPlayers,
+							value = #Players:GetPlayers() .. "/" .. Players.MaxPlayers,
 							inline = false
 						},
-
 						{
 							name = "JobId",
-							value =
-								"📋 Copy mobile:\n`" ..
-								jobId ..
-								"`\n\n" ..
-								"📋 Copy desktop:\n```" ..
-								jobId ..
-								"```",
+							value = "📋 Copy mobile:\n`" .. jobId .. "`\n\n" ..
+								"📋 Copy desktop:\n```" .. jobId .. "```",
 							inline = false
 						},
-
 						{
 							name = "Join Server",
-							value =
-								"🔗 " ..
-								joinLink,
+							value = "🔗 " .. joinLink,
 							inline = false
 						},
-
 						{
 							name = "Items",
-							value =
-								batchText,
+							value = batchText,
 							inline = false
 						}
 					},
-
 					footer = {
-						text =
-							"PLAZA SCANNER | " ..
-							game.JobId ..
-							" | " ..
-							GetWIBTime()
+						text = "PLAZA SCANNER | " .. game.JobId .. " | " .. GetWIBTime()
 					}
 				}}
 			}
 
-			--================================================--
-			-- SEND REQUEST
-			--================================================--
-
-			local ok, err =
-				pcall(function()
-
-					req({
-
-						Url = webhook,
-						Method = "POST",
-
-						Headers = {
-							["Content-Type"] =
-								"application/json"
-						},
-
-						Body =
-							HttpService:JSONEncode(
-								payload
-							)
-					})
-
-				end)
+			local ok, err = pcall(function()
+				req({
+					Url = webhook,
+					Method = "POST",
+					Headers = {
+						["Content-Type"] = "application/json"
+					},
+					Body = HttpService:JSONEncode(payload)
+				})
+			end)
 
 			if ok then
-
-				print(
-					"[WEBHOOK SENT]",
-					#batch,
-					webhook
-				)
-
+				Log("[WEBHOOK SENT]", #batch, webhook)
 			else
-
-				warn(
-					"[WEBHOOK ERROR]",
-					err
-				)
-
+				Warn("[WEBHOOK ERROR]", err)
 			end
 		end
 
 		for _, item in ipairs(list) do
+			local add = BuildItemText(item)
 
-			local add =
-				BuildItemText(item)
-
-			-- Start a new batch when it reaches 4 items
-			-- or when adding the next item would exceed 900 chars.
-			if #batch >= BATCH_SIZE
-				or (#batch > 0 and #batchText + #add > MAX_TEXT)
-			then
-
+			if #batch >= BATCH_SIZE or (#batch > 0 and #batchText + #add > MAX_TEXT) then
 				SendBatch()
-
 				table.clear(batch)
 				batchText = ""
 				task.wait(0.5)
 			end
 
-			-- Always keep the current item so no item is lost.
 			table.insert(batch, item)
 			batchText ..= add
 		end
 
-		-- Send remaining items.
 		SendBatch()
 	end
 end
@@ -1966,199 +1219,138 @@ end
 -- SERVER CACHE
 --================================================--
 
-local ServerCacheFile =
-	"JP_FINDER_V7_2_SERVERS.json"
-
-local ServerList = {}
-local TriedServers = {}
-
 local function SaveServerCache()
-
 	if not writefile then
 		return
 	end
 
 	pcall(function()
-
 		writefile(
 			ServerCacheFile,
-
 			HttpService:JSONEncode({
-
-				Servers =
-					ServerList,
-
-				Tried =
-					TriedServers
-
+				Servers = ServerList,
+				Tried = TriedServers
 			})
 		)
-
 	end)
 end
 
 local function LoadServerCache()
-
-	if not readfile
-		or not isfile
-	then
+	if not readfile or not isfile then
 		return
 	end
 
-	if not isfile(
-		ServerCacheFile
-	) then
+	if not isfile(ServerCacheFile) then
 		return
 	end
 
-	local ok, data =
-		pcall(function()
-
-			return HttpService:JSONDecode(
-				readfile(
-					ServerCacheFile
-				)
-			)
-
-		end)
+	local ok, data = pcall(function()
+		return HttpService:JSONDecode(readfile(ServerCacheFile))
+	end)
 
 	if ok and data then
-
-		ServerList =
-			data.Servers or {}
-
-		TriedServers =
-			data.Tried or {}
-
-		print(
-			"[CACHE LOADED]",
-			#ServerList
-		)
+		ServerList = data.Servers or {}
+		TriedServers = data.Tried or {}
+		Log("[CACHE LOADED]", #ServerList)
 	end
 end
 
 local function IsServerUsed(id)
-
 	return TriedServers[id] == true
 end
 
 --================================================--
--- GET ALL SERVERS
+-- GET ALL SERVERS (IMPROVED WITH DEDUPLICATION)
 --================================================--
 
 local function GetAllServers()
+	local servers = {}
+	local cursor = ""
+	local page = 1
+	local seenServers = {}
 
-    local servers = {}
-    local cursor = ""
-    local page = 1
+	while true do
+		local url = "https://games.roblox.com/v1/games/" ..
+			tostring(PlaceId) ..
+			"/servers/Public?sortOrder=Desc&limit=100"
 
-    while true do
+		if cursor ~= "" then
+			url = url .. "&cursor=" .. HttpService:UrlEncode(cursor)
+		end
 
-        local url =
-            "https://games.roblox.com/v1/games/"
-            .. tostring(PlaceId)
-            .. "/servers/Public?sortOrder=Desc&limit=100"
+		local success, response = pcall(function()
+			return game:HttpGet(url)
+		end)
 
-        if cursor ~= "" then
-            url = url .. "&cursor=" .. HttpService:UrlEncode(cursor)
-        end
+		if not success then
+			Warn("[SERVER API ERROR]", response)
+			break
+		end
 
-        local success, response = pcall(function()
-            return game:HttpGet(url)
-        end)
+		local decodeSuccess, data = pcall(function()
+			return HttpService:JSONDecode(response)
+		end)
 
-        if not success then
-            warn("[SERVER API ERROR]", response)
-            break
-        end
+		if not decodeSuccess or not data then
+			Warn("[SERVER JSON ERROR]")
+			break
+		end
 
-        local decodeSuccess, data = pcall(function()
-            return HttpService:JSONDecode(response)
-        end)
+		if data.data then
+			for _, server in ipairs(data.data) do
+				if server.id and not seenServers[server.id] then
+					seenServers[server.id] = true
+					if server.id ~= game.JobId
+						and server.playing >= Config.Server.MinPlayer
+						and server.playing <= Config.Server.MaxPlayer
+						and not IsServerUsed(server.id)
+					then
+						table.insert(servers, server.id)
+					end
+				end
+			end
+		end
 
-        if not decodeSuccess or not data then
-            warn("[SERVER JSON ERROR]")
-            break
-        end
+		Log("[SERVER PAGE]", page, "| FOUND:", #servers)
 
-        if data.data then
+		if not data.nextPageCursor then
+			break
+		end
 
-            for _, server in ipairs(data.data) do
+		-- Prevent infinite loop on repeated cursor
+		if seenServers[data.nextPageCursor] then
+			Warn("[SERVER API] Repeated cursor detected")
+			break
+		end
 
-                if
-                    server.id ~= game.JobId
-                    and server.playing >= Config.Server.MinPlayer
-                    and server.playing <= Config.Server.MaxPlayer
-                    and not IsServerUsed(server.id)
-                then
+		cursor = data.nextPageCursor
+		page += 1
+		task.wait(0.5)
+	end
 
-                    table.insert(servers, server.id)
-
-                end
-
-            end
-
-        end
-
-        print(
-            "[SERVER PAGE]",
-            page,
-            "| FOUND:",
-            #servers
-        )
-
-        -- Tidak ada halaman berikutnya
-        if not data.nextPageCursor then
-            break
-        end
-
-        cursor = data.nextPageCursor
-        page += 1
-
-        task.wait(0.5)
-
-    end
-
-    print("[SERVER FOUND]", #servers)
-
-    return servers
-
+	Log("[SERVER FOUND]", #servers)
+	return servers
 end
+
 --================================================--
 -- NEXT SERVER
 --================================================--
 
 local function GetNextServer()
-
 	if #ServerList == 0 then
-
-		ServerList =
-			GetAllServers()
+		ServerList = GetAllServers()
 	end
 
 	if #ServerList == 0 then
-
-		print(
-			"[RESET SERVER CACHE]"
-		)
-
+		Log("[RESET SERVER CACHE]")
 		TriedServers = {}
-
-		ServerList =
-			GetAllServers()
+		ServerList = GetAllServers()
 	end
 
-	local serverId =
-		table.remove(
-			ServerList,
-			1
-		)
+	local serverId = table.remove(ServerList, 1)
 
 	if serverId then
-
-		TriedServers[serverId] =
-			true
-
+		TriedServers[serverId] = true
 		SaveServerCache()
 	end
 
@@ -2166,68 +1358,49 @@ local function GetNextServer()
 end
 
 --================================================--
--- SERVER HOP
+-- SERVER HOP (IMPROVED WITH ATTEMPT LIMIT)
 --================================================--
 
 local function ServerHop()
-
 	if not Config.Server.AutoHop then
 		return
 	end
 
-	print("=================")
-	print("START SERVER HOP")
+	State.HopAttempts += 1
 
-	local target =
-		GetNextServer()
+	if State.HopAttempts > MAX_HOP_ATTEMPTS then
+		Warn("[HOP] Max hop attempts reached, stopping")
+		State.HopAttempts = 0
+		return
+	end
+
+	Log("=================")
+	Log("START SERVER HOP")
+	Log("Attempt:", State.HopAttempts, "/", MAX_HOP_ATTEMPTS)
+
+	local target = GetNextServer()
 
 	if not target then
-
-		warn(
-			"NO SERVER TARGET"
-		)
-
-		task.wait(
-			Config.Server.HopDelay
-		)
-
-		ServerList =
-			GetAllServers()
-
-		target =
-			GetNextServer()
+		Warn("NO SERVER TARGET")
+		task.wait(Config.Server.HopDelay)
+		ServerList = GetAllServers()
+		target = GetNextServer()
 
 		if not target then
+			Warn("[HOP] Still no target after refresh")
 			return
 		end
 	end
 
-	print(
-		"[TELEPORT]",
-		target
-	)
+	Log("[TELEPORT]", target)
 
-	local ok, err =
-		pcall(function()
-
-			TeleportService:TeleportToPlaceInstance(
-				PlaceId,
-				target,
-				LocalPlayer
-			)
-
-		end)
+	local ok, err = pcall(function()
+		TeleportService:TeleportToPlaceInstance(PlaceId, target, LocalPlayer)
+	end)
 
 	if not ok then
-
-		warn(
-			"[TELEPORT ERROR]",
-			err
-		)
-
-		task.wait(3)
-
-		ServerHop()
+		Warn("[TELEPORT ERROR]", err)
+		-- Don't recurse, let main loop handle retries
 	end
 end
 
@@ -2236,41 +1409,21 @@ end
 --================================================--
 
 TeleportService.TeleportInitFailed:Connect(
-	function(
-		player,
-		result,
-		message
-	)
-
-		warn(
-			"[TELEPORT FAILED]",
-			result,
-			message
-		)
-
-		task.wait(
-			Config.Server.HopDelay
-		)
-
+	function(player, result, message)
+		Warn("[TELEPORT FAILED]", result, message)
+		task.wait(Config.Server.HopDelay)
 		ServerHop()
 	end
 )
 
 --================================================--
--- RESET
+-- RESET SCAN STATE
 --================================================--
 
 local function ResetScan()
-
-	table.clear(
-		FoundItems
-	)
-
-	table.clear(
-		UsedUUID
-	)
-
-	FoundCount = 0
+	table.clear(State.FoundItems)
+	table.clear(State.UsedUUID)
+	State.FoundCount = 0
 end
 
 --================================================--
@@ -2278,18 +1431,16 @@ end
 --================================================--
 
 local function WaitForScannableBooth(timeout)
-
 	timeout = timeout or 60
 
 	local startTime = os.clock()
 
-	print("========================================")
-	print("[BOOTH READY CHECK] START")
-	print("[BOOTH READY CHECK] Timeout:", timeout, "seconds")
-	print("========================================")
+	Log("========================================")
+	Log("[BOOTH READY CHECK] START")
+	Log("[BOOTH READY CHECK] Timeout:", timeout, "seconds")
+	Log("========================================")
 
 	while os.clock() - startTime < timeout do
-
 		local islands = workspace:FindFirstChild("Islands")
 		local tradePlaza = islands and islands:FindFirstChild("TradePlaza", true)
 		local booths = tradePlaza and tradePlaza:FindFirstChild("Booths")
@@ -2299,37 +1450,25 @@ local function WaitForScannableBooth(timeout)
 		local itemCount = 0
 
 		if booths then
-
 			for _, booth in ipairs(booths:GetChildren()) do
-
 				boothCount += 1
 
 				local plane = booth:FindFirstChild("Plane")
-
 				if plane then
-
 					local surfaceGui = plane:FindFirstChild("SurfaceGui")
-
 					if surfaceGui then
-
 						local items = surfaceGui:FindFirstChild("Items")
-
 						if items then
-
 							for _, item in ipairs(items:GetChildren()) do
-
 								if item:IsA("Frame") then
-
 									itemCount += 1
 									foundItem = true
-
-									print("----------------------------------------")
-									print("[BOOTH WITH ITEM FOUND]")
-									print("Booth:", booth.Name)
-									print("Item:", item.Name)
-									print("Path:", item:GetFullName())
-									print("----------------------------------------")
-
+									Log("----------------------------------------")
+									Log("[BOOTH WITH ITEM FOUND]")
+									Log("Booth:", booth.Name)
+									Log("Item:", item.Name)
+									Log("Path:", item:GetFullName())
+									Log("----------------------------------------")
 									break
 								end
 							end
@@ -2343,7 +1482,7 @@ local function WaitForScannableBooth(timeout)
 			end
 		end
 
-		print(
+		Log(
 			"[BOOTH CHECK]",
 			"Booths:", boothCount,
 			"| Items:", itemCount,
@@ -2351,22 +1490,20 @@ local function WaitForScannableBooth(timeout)
 		)
 
 		if foundItem then
-
-			print("========================================")
-			print("[BOOTH READY] Minimal 1 item ditemukan")
-			print("[BOOTH READY] Scan can start")
-			print("========================================")
-
+			Log("========================================")
+			Log("[BOOTH READY] Minimal 1 item ditemukan")
+			Log("[BOOTH READY] Scan can start")
+			Log("========================================")
 			return true
 		end
 
 		task.wait(0.5)
 	end
 
-	print("========================================")
-	warn("[BOOTH READY TIMEOUT]")
-	warn("[BOOTH READY TIMEOUT] No scannable item for", timeout, "seconds")
-	print("========================================")
+	Log("========================================")
+	Warn("[BOOTH READY TIMEOUT]")
+	Warn("[BOOTH READY TIMEOUT] No scannable item for", timeout, "seconds")
+	Log("========================================")
 
 	return false
 end
@@ -2376,115 +1513,72 @@ end
 --================================================--
 
 local function RunScan()
-
-	print("======================")
-	print("🎣 START SCAN")
-	print("JOB:", game.JobId)
+	Log("======================")
+	Log("🎣 START SCAN")
+	Log("JOB:", game.JobId)
 
 	ResetScan()
 
-	-- LoadDelay tetap dihormati sebagai jeda awal,
-	-- lalu readiness ditentukan oleh booth yang benar-benar memiliki item.
-	task.wait(
-		Config.LoadDelay
-	)
+	task.wait(Config.LoadDelay)
 
 	if not WaitForScannableBooth(60) then
-
-		warn("[SCAN ABORTED] No booth with item within 60 seconds")
-
+		Warn("[SCAN ABORTED] No booth with item within 60 seconds")
 		return false
 	end
 
-	print(
-		"[SCAN BOOTH]"
-	)
+	Log("[SCAN BOOTH]")
 
-	local ok, err =
-		pcall(
-			ScanBooths
-		)
+	local ok, err = pcall(ScanBooths)
 
 	if not ok then
-
-		warn(
-			"[SCAN ERROR]",
-			err
-		)
-
+		Warn("[SCAN ERROR]", err)
 		return false
 	end
 
-	print(
-		"[FOUND]",
-		FoundCount
-	)
+	Log("[FOUND]", State.FoundCount)
 
-	if FoundCount > 0 then
-
-		SendWebhook(
-			FoundItems
-		)
-
+	if State.FoundCount > 0 then
+		SendWebhook(State.FoundItems)
 	end
 
+	State.HopAttempts = 0 -- Reset on successful scan
 	return true
 end
 
 --================================================--
--- MAIN LOOP
+-- MAIN LOOP (IMPROVED)
 --================================================--
 
 local function StartFinder()
+	if State.IsRunning then
+		Warn("[FINDER] Already running")
+		return
+	end
 
-	print(
-		"🎣 PLAZA SCANNER START"
-	)
+	State.IsRunning = true
 
-	while true do
+	Log("🎣 PLAZA SCANNER START")
 
-		local ok, scanCompleted =
-			pcall(
-				RunScan
-			)
+	while State.IsRunning do
+		local ok, scanCompleted = pcall(RunScan)
 
 		if not ok then
-
-			warn(
-				"[MAIN ERROR]",
-				scanCompleted
-			)
-
+			Warn("[MAIN ERROR]", scanCompleted)
 			scanCompleted = false
 		end
 
 		if not scanCompleted then
-
-			-- RunScan gagal karena Plaza tidak siap / error.
-			-- Jika AutoHop aktif, pindah server untuk menghindari stuck.
 			if Config.Server.AutoHop then
-
-				print("[HOP] Scan tidak selesai, server dianggap stuck")
+				Log("[HOP] Scan tidak selesai, server dianggap stuck")
 				task.wait(Config.Server.HopDelay)
 				ServerHop()
 				break
 			end
-
 		else
-
 			if Config.Server.AutoHop then
-
-				print(
-					"[HOP AFTER]",
-					Config.Server.HopDelay
-				)
-
-				task.wait(
-					Config.Server.HopDelay
-				)
-
+				Log("[HOP AFTER]", Config.Server.HopDelay)
+				task.wait(Config.Server.HopDelay)
 				ServerHop()
-
 				break
 			end
 		end
@@ -2497,12 +1591,11 @@ end
 -- INIT
 --================================================--
 
-LoadServerCache()
-
-task.spawn(
-	StartFinder
-)
-
-print(
-	"🎣 PLAZA SCANNER FISHIT READY"
-)
+if not _G.PLAZA_SCANNER_RUNNING then
+	_G.PLAZA_SCANNER_RUNNING = true
+	LoadServerCache()
+	task.spawn(StartFinder)
+	Log("🎣 PLAZA SCANNER FISHIT READY")
+else
+	Warn("[FINDER] Scanner already initialized")
+end
