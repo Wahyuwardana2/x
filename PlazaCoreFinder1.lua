@@ -511,7 +511,7 @@ local Config = {
 		AutoHop = true,
 		MinPlayer = 1,
 		MaxPlayer = 20,
-		HopDelay = 1
+		HopDelay = 3
 	}
 }
 
