@@ -250,7 +250,7 @@ local Config = {
                 "shiro kunai"
                 -- "frosted guitar",
                 -- "oceanic trident",
-                -- "wings of everlove",
+                "wings of everlove",
                 -- "spirit staff",
                 -- "pirate banjo",
                 -- "reaver scyte",
