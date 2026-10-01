@@ -1686,14 +1686,10 @@ local function BuildItemText(item)
 		"`***\n\n" ..
 
 		"**Seller**\n" ..
-		tostring(
-			item.SellerUsername or item.Seller or "-"
-		) ..
-		"(" ..
-		tostring(
-			item.SellerDisplayName or "-"
-		) ..
-		")" ..
+		tostring(item.SellerUsername or "-") ..
+		" **" ..
+		tostring(item.SellerDisplayName or "-") ..
+		"**"
 
 		"\n\n" ..
 
