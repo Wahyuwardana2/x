@@ -2452,6 +2452,104 @@ local function ResetScan()
 end
 
 --================================================--
+-- WAIT FOR SCANNABLE BOOTH
+--================================================--
+
+local function WaitForScannableBooth(timeout)
+
+	timeout = timeout or 60
+
+	local startTime = os.clock()
+
+	print("========================================")
+	print("[BOOTH READY CHECK] START")
+	print("[BOOTH READY CHECK] Timeout:", timeout, "seconds")
+	print("========================================")
+
+	while os.clock() - startTime < timeout do
+
+		local islands = workspace:FindFirstChild("Islands")
+		local tradePlaza = islands and islands:FindFirstChild("TradePlaza", true)
+		local booths = tradePlaza and tradePlaza:FindFirstChild("Booths")
+
+		local foundItem = false
+		local boothCount = 0
+		local itemCount = 0
+
+		if booths then
+
+			for _, booth in ipairs(booths:GetChildren()) do
+
+				boothCount += 1
+
+				local plane = booth:FindFirstChild("Plane")
+
+				if plane then
+
+					local surfaceGui = plane:FindFirstChild("SurfaceGui")
+
+					if surfaceGui then
+
+						local items = surfaceGui:FindFirstChild("Items")
+
+						if items then
+
+							for _, item in ipairs(items:GetChildren()) do
+
+								if item:IsA("Frame") then
+
+									itemCount += 1
+									foundItem = true
+
+									print("----------------------------------------")
+									print("[BOOTH WITH ITEM FOUND]")
+									print("Booth:", booth.Name)
+									print("Item:", item.Name)
+									print("Path:", item:GetFullName())
+									print("----------------------------------------")
+
+									break
+								end
+							end
+
+							if foundItem then
+								break
+							end
+						end
+					end
+				end
+			end
+		end
+
+		print(
+			"[BOOTH CHECK]",
+			"Booths:", boothCount,
+			"| Items:", itemCount,
+			"| Time:", string.format("%.1f", os.clock() - startTime) .. "s"
+		)
+
+		if foundItem then
+
+			print("========================================")
+			print("[BOOTH READY] Minimal 1 item ditemukan")
+			print("[BOOTH READY] Scan can start")
+			print("========================================")
+
+			return true
+		end
+
+		task.wait(0.5)
+	end
+
+	print("========================================")
+	warn("[BOOTH READY TIMEOUT]")
+	warn("[BOOTH READY TIMEOUT] No scannable item for", timeout, "seconds")
+	print("========================================")
+
+	return false
+end
+
+--================================================--
 -- RUN SCAN
 --================================================--
 
@@ -2463,9 +2561,18 @@ local function RunScan()
 
 	ResetScan()
 
+	-- LoadDelay tetap dihormati sebagai jeda awal,
+	-- lalu readiness ditentukan oleh booth yang benar-benar memiliki item.
 	task.wait(
 		Config.LoadDelay
 	)
+
+	if not WaitForScannableBooth(60) then
+
+		warn("[SCAN ABORTED] No booth with item within 60 seconds")
+
+		return false
+	end
 
 	print(
 		"[SCAN BOOTH]"
@@ -2482,6 +2589,8 @@ local function RunScan()
 			"[SCAN ERROR]",
 			err
 		)
+
+		return false
 	end
 
 	print(
@@ -2496,6 +2605,8 @@ local function RunScan()
 		)
 
 	end
+
+	return true
 end
 
 --================================================--
@@ -2510,7 +2621,7 @@ local function StartFinder()
 
 	while true do
 
-		local ok, err =
+		local ok, scanCompleted =
 			pcall(
 				RunScan
 			)
@@ -2519,24 +2630,41 @@ local function StartFinder()
 
 			warn(
 				"[MAIN ERROR]",
-				err
+				scanCompleted
 			)
+
+			scanCompleted = false
 		end
 
-		if Config.Server.AutoHop then
+		if not scanCompleted then
 
-			print(
-				"[HOP AFTER]",
-				Config.Server.HopDelay
-			)
+			-- RunScan gagal karena Plaza tidak siap / error.
+			-- Jika AutoHop aktif, pindah server untuk menghindari stuck.
+			if Config.Server.AutoHop then
 
-			task.wait(
-				Config.Server.HopDelay
-			)
+				print("[HOP] Scan tidak selesai, server dianggap stuck")
+				task.wait(Config.Server.HopDelay)
+				ServerHop()
+				break
+			end
 
-			ServerHop()
+		else
 
-			break
+			if Config.Server.AutoHop then
+
+				print(
+					"[HOP AFTER]",
+					Config.Server.HopDelay
+				)
+
+				task.wait(
+					Config.Server.HopDelay
+				)
+
+				ServerHop()
+
+				break
+			end
 		end
 
 		task.wait(10)
