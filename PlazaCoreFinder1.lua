@@ -247,10 +247,10 @@ local Config = {
 				"devourer",
 				"prize fighter",
                 "blossom kunai",
-                "shiro kunai"
+                "shiro kunai",
                 -- "frosted guitar",
                 -- "oceanic trident",
-                "wings of everlove",
+                "wings of everlove"
                 -- "spirit staff",
                 -- "pirate banjo",
                 -- "reaver scyte",
