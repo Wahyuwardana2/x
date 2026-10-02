@@ -344,28 +344,28 @@ local Config = {
 
         Name = {
 
-            Enabled = false,
+            Enabled = true,
 
-            Mode = "Blacklist", -- Whitelist / Blacklist
+            Mode = "Whitelist", -- Whitelist / Blacklist
 
             Match = "Exact", -- Exact / Contains / StartsWith / EndsWith
 
             List = {
-                "dinky fishing boat",
-                "raft",
-                "coral boat",
-                "retro utility boat",
-                "banana pirate raft",
-                "classic ducky boat",
-                "santa sled",
-                "swan boat",
-                "pumpkin boat",
-                "christmas car",
-                "ancient ship",
-                "retro car boat",
-                "ferryman boat",
-                "superstar boat",
-                "undersea racer"
+                -- "dinky fishing boat",
+                -- "raft",
+                -- "coral boat",
+                -- "retro utility boat",
+                -- "banana pirate raft",
+                -- "classic ducky boat",
+                -- "santa sled",
+                -- "swan boat",
+                -- "pumpkin boat",
+                -- "christmas car",
+                -- "ancient ship",
+                -- "retro car boat",
+                -- "ferryman boat",
+                -- "superstar boat",
+                "tropical breeze"
             }
 
         },
@@ -378,7 +378,7 @@ local Config = {
 
         RAP = {
 
-            Enabled = true,
+            Enabled = false,
             Min = 1000,
             Max = 100000,
             Percent = nil
