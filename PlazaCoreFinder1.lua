@@ -135,14 +135,37 @@ local Config = {
             Enabled = true,
             Require = true, -- true = wajib ada mutation, false = normal boleh
 
-            Mode = "Blacklist",
+            Mode = "Whitelist",
             Match = "Exact",
 
             List = {
-                "ghost",
-                "stone",
-                "albino",
-                "sandy"
+                "8-bit",
+                "solar",
+                "elemental",
+                "strawberry",
+				"glitch",
+				"equinox",
+				"cosmic",
+				"abyssal",
+				"aurora",
+				"binary",
+				"fire",
+				"pastel",
+				"carrot",
+				"heartbreaker",
+				"cupid",
+				"crystalized",
+				"leviatan rage",
+				"arctic frost",
+				"noob",
+				"disco",
+				"1x1x1x1",
+				"moon fragment",
+				"bloodmoon",
+				"color burn",
+				"fairy dust",
+				"gemstone"
+					
             }
 
         },
