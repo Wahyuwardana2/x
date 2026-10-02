@@ -114,16 +114,38 @@ local Config = {
 			},
 
 			Mutation = {
-				Enabled = false,
+				Enabled = true,
 				Require = true,
 				Mode = "Blacklist",
 				Match = "Exact",
 
 				List = {
-					"ghost",
-					"stone",
-					"albino",
-					"sandy"
+				"8-bit",
+                "solar",
+                "elemental",
+                "strawberry",
+				"glitch",
+				"equinox",
+				"cosmic",
+				"abyssal",
+				"aurora",
+				"binary",
+				"fire",
+				"pastel",
+				"carrot",
+				"heartbreaker",
+				"cupid",
+				"crystalized",
+				"leviatan rage",
+				"arctic frost",
+				"noob",
+				"disco",
+				"1x1x1x1",
+				"moon fragment",
+				"bloodmoon",
+				"color burn",
+				"fairy dust",
+				"gemstone"
 				}
 			},
 
@@ -134,7 +156,7 @@ local Config = {
 			},
 
 			RAP = {
-				Enabled = true,
+				Enabled = false,
 				Percent = 20
 			}
 		},
