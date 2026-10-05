@@ -284,8 +284,8 @@ local Config = {
                 -- "silverweaver's globe",
 				"devourer",
 				"prize fighter",
-                "blossom kunai",
-                "shiro kunai"
+                -- "blossom kunai",
+                -- "shiro kunai"
                 -- "frosted guitar",
                 -- "oceanic trident",
                 -- "wings of everlove",
