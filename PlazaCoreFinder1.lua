@@ -283,7 +283,7 @@ local Config = {
                 -- "starweaver's globe",
                 -- "silverweaver's globe",
 				"devourer",
-				"prize fighter",
+				"prize fighter"
                 -- "blossom kunai",
                 -- "shiro kunai"
                 -- "frosted guitar",
