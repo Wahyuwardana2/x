@@ -2,13 +2,30 @@ delete window.$;
 let wpRequire = webpackChunkdiscord_app.push([[Symbol()], {}, r => r]);
 webpackChunkdiscord_app.pop();
 
-let ApplicationStreamingStore = Object.values(wpRequire.c).find(x => x?.exports?.A?.__proto__?.getStreamerActiveStreamMetadata).exports.A;
-let RunningGameStore = Object.values(wpRequire.c).find(x => x?.exports?.Ay?.getRunningGames).exports.Ay;
-let QuestsStore = Object.values(wpRequire.c).find(x => x?.exports?.A?.__proto__?.getQuest).exports.A;
-let ChannelStore = Object.values(wpRequire.c).find(x => x?.exports?.A?.__proto__?.getAllThreadsForParent).exports.A;
-let GuildChannelStore = Object.values(wpRequire.c).find(x => x?.exports?.Ay?.getSFWDefaultChannel).exports.Ay;
-let FluxDispatcher = Object.values(wpRequire.c).find(x => x?.exports?.h?.__proto__?.flushWaitQueue).exports.h;
-let api = Object.values(wpRequire.c).find(x => x?.exports?.Bo?.get).exports.Bo;
+let ApplicationStreamingStore = Object.values(wpRequire.c)
+    .map(x => x?.exports?.A)
+    .find(x => typeof x?.getStreamerActiveStreamMetadata === "function");
+let RunningGameStore = Object.values(wpRequire.c)
+    .map(x => x?.exports?.Ay)
+    .find(x => typeof x?.getRunningGames === "function");
+let QuestsStore = Object.values(wpRequire.c)
+    .map(x => x?.exports?.A)
+    .find(x => x?.quests instanceof Map && typeof x?.getQuest === "function");
+let ChannelStore = Object.values(wpRequire.c)
+    .map(x => x?.exports?.A)
+    .find(x => typeof x?.getAllThreadsForParent === "function");
+
+let GuildChannelStore = Object.values(wpRequire.c)
+    .map(x => x?.exports?.Ay)
+    .find(x => typeof x?.getSFWDefaultChannel === "function");
+
+let FluxDispatcher = Object.values(wpRequire.c)
+    .map(x => x?.exports?.h)
+    .find(x => typeof x?.flushWaitQueue === "function");
+
+let api = Object.values(wpRequire.c)
+    .map(x => x?.exports?.Bo)
+    .find(x => typeof x?.get === "function");
 
 const supportedTasks = ["WATCH_VIDEO", "PLAY_ON_DESKTOP", "STREAM_ON_DESKTOP", "PLAY_ACTIVITY", "WATCH_VIDEO_ON_MOBILE"]
 let quests = [...QuestsStore.quests.values()].filter(x => x.userStatus?.enrolledAt && !x.userStatus?.completedAt && new Date(x.config.expiresAt).getTime() > Date.now() && supportedTasks.find(y => Object.keys((x.config.taskConfig ?? x.config.taskConfigV2).tasks).includes(y)))
